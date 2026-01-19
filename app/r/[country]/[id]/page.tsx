@@ -136,6 +136,32 @@ export default function RestaurantPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showHoursDropdown])
 
+  // Generate Schema.org structured data and inject into head
+  useEffect(() => {
+    if (!restaurant) return
+
+    const schemaData = generateRestaurantSchema({ 
+      restaurant, 
+      baseUrl: typeof window !== 'undefined' ? window.location.origin : 'https://bite.reserve'
+    })
+
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.id = 'restaurant-schema'
+    script.text = JSON.stringify(schemaData)
+    
+    // Remove existing schema if present
+    const existing = document.getElementById('restaurant-schema')
+    if (existing) existing.remove()
+    
+    document.head.appendChild(script)
+    
+    return () => {
+      const scriptToRemove = document.getElementById('restaurant-schema')
+      if (scriptToRemove) scriptToRemove.remove()
+    }
+  }, [restaurant])
+
   const handleRevealPhone = () => {
     if (!showPhone && restaurant) {
       trackEvent(restaurant.id, 'phone_click')
@@ -194,10 +220,46 @@ export default function RestaurantPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading restaurant...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="relative mb-8 inline-block">
+            {/* Fork and Knife Icon - Simple design */}
+            <div className="flex items-center justify-center gap-2">
+              <div className="relative">
+                <div className="w-12 h-12 bg-accent-600 rounded-lg flex items-center justify-center transform rotate-45">
+                  <div className="w-1 h-6 bg-white rounded-full"></div>
+                </div>
+                <div className="absolute inset-0 animate-ping opacity-20">
+                  <div className="w-12 h-12 bg-accent-600 rounded-lg"></div>
+                </div>
+              </div>
+              <div className="w-1 h-14 bg-accent-600 rounded-full animate-pulse"></div>
+              <div className="relative">
+                <div className="w-12 h-12 bg-accent-600 rounded-full flex items-center justify-center">
+                  <div className="w-6 h-6 bg-white rounded-full"></div>
+                </div>
+                <div className="absolute inset-0 animate-ping opacity-20" style={{ animationDelay: '0.3s' }}>
+                  <div className="w-12 h-12 bg-accent-600 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+            {/* Pulsing rings */}
+            <div className="absolute inset-0 flex items-center justify-center -z-10">
+              <div className="w-28 h-28 border-2 border-accent-200 rounded-full animate-ping"></div>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center -z-10">
+              <div className="w-28 h-28 border-2 border-accent-300 rounded-full animate-ping" style={{ animationDelay: '0.5s', animationDuration: '2s' }}></div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-2xl font-bold text-gray-900">Loading restaurant</h3>
+            <div className="flex items-center justify-center gap-1.5">
+              <div className="w-2 h-2 bg-accent-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+              <div className="w-2 h-2 bg-accent-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-2 h-2 bg-accent-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+            <p className="text-sm text-gray-500 font-medium">Just a moment...</p>
+          </div>
         </div>
       </div>
     )
@@ -221,33 +283,6 @@ export default function RestaurantPage() {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as keyof typeof restaurant.hours
   const hours = restaurant.hours || {}
   const isOpen = hours[today] ? true : false // Simple check - could be enhanced
-
-  // Generate Schema.org structured data
-  const schemaData = restaurant ? generateRestaurantSchema({ 
-    restaurant, 
-    baseUrl: typeof window !== 'undefined' ? window.location.origin : 'https://bite.reserve'
-  }) : null
-
-  // Add Schema.org to head for SEO
-  useEffect(() => {
-    if (!schemaData) return
-
-    const script = document.createElement('script')
-    script.type = 'application/ld+json'
-    script.id = 'restaurant-schema'
-    script.text = JSON.stringify(schemaData)
-    
-    // Remove existing schema if present
-    const existing = document.getElementById('restaurant-schema')
-    if (existing) existing.remove()
-    
-    document.head.appendChild(script)
-    
-    return () => {
-      const scriptToRemove = document.getElementById('restaurant-schema')
-      if (scriptToRemove) scriptToRemove.remove()
-    }
-  }, [schemaData])
 
   return (
     <div className="min-h-screen bg-gray-50 pt-10 sm:pt-12">

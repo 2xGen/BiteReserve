@@ -214,12 +214,48 @@ function ClaimPageContent() {
     e.preventDefault()
     setIsSubmitting(true)
     
-    // TODO: Submit to Supabase
-    console.log({ ...formData, selectedPlan })
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    setIsSubmitting(false)
-    setIsSubmitted(true)
+    try {
+      const response = await fetch('/api/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          // User info
+          email: formData.email,
+          ownerName: formData.ownerName,
+          phone: formData.phone,
+          // Restaurant info
+          restaurantId: selectedRestaurant?.id || null, // If claiming existing restaurant
+          restaurantName: formData.restaurantName,
+          address: formData.address,
+          city: formData.city,
+          country: formData.country,
+          website: formData.website,
+          cuisineTypes: formData.cuisineTypes,
+          bookingPlatforms: formData.bookingPlatforms,
+          // Plan selection
+          selectedPlan,
+          // Optional
+          howDidYouHear: formData.howDidYouHear,
+          notes: formData.notes
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit claim')
+      }
+
+      // Success - show success screen
+      setIsSubmitted(true)
+    } catch (error) {
+      console.error('Claim submission error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to submit claim. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (isSubmitted) {

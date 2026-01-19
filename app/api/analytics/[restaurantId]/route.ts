@@ -4,11 +4,6 @@ import { NextRequest, NextResponse } from 'next/server'
 // Use Edge Runtime for speed
 export const runtime = 'edge'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 // Cache responses for 60 seconds to reduce DB load
 const CACHE_TTL = 60
 
@@ -17,6 +12,19 @@ export async function GET(
   { params }: { params: { restaurantId: string } }
 ) {
   try {
+    // Create Supabase client inside function to avoid build-time evaluation
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
     const { restaurantId } = params
     const { searchParams } = new URL(request.url)
     const period = searchParams.get('period') || '7d'

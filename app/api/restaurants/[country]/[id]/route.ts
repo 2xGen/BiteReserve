@@ -3,17 +3,25 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'edge'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // Use anon key for public data
-)
-
 // GET - Fetch restaurant by country_code and restaurant_number (public)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ country: string; id: string }> }
 ) {
   try {
+    // Create Supabase client inside function to avoid build-time evaluation
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
     const { country, id } = await params
     
     // Ensure id is padded to 5 digits

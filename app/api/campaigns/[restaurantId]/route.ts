@@ -3,17 +3,25 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'edge'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 // GET - Fetch all campaign links for a restaurant
 export async function GET(
   request: NextRequest,
   { params }: { params: { restaurantId: string } }
 ) {
   try {
+    // Create Supabase client inside function to avoid build-time evaluation
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
     const { restaurantId } = params
 
     // Fetch campaign links
@@ -66,6 +74,19 @@ export async function POST(
   { params }: { params: { restaurantId: string } }
 ) {
   try {
+    // Create Supabase client inside function to avoid build-time evaluation
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
     const { restaurantId } = params
     const body = await request.json()
     const { name, type } = body
@@ -120,6 +141,19 @@ export async function DELETE(
   { params }: { params: { restaurantId: string } }
 ) {
   try {
+    // Create Supabase client inside function to avoid build-time evaluation
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
     const { searchParams } = new URL(request.url)
     const campaignId = searchParams.get('id')
 

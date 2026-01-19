@@ -4,16 +4,10 @@ import { NextRequest, NextResponse } from 'next/server'
 // Use Edge Runtime for faster, cheaper execution
 export const runtime = 'edge'
 
-// Initialize Supabase with service role for server-side operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 // Simple hash function for IP anonymization
-async function hashIP(ip: string): Promise<string> {
+async function hashIP(ip: string, salt: string): Promise<string> {
   const encoder = new TextEncoder()
-  const data = encoder.encode(ip + process.env.SUPABASE_SERVICE_ROLE_KEY) // Salt with secret
+  const data = encoder.encode(ip + salt)
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16)
@@ -28,6 +22,19 @@ function getDeviceType(userAgent: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    // Create Supabase client inside function to avoid build-time evaluation
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { success: true, queued: true }, // Don't fail tracking
+        { status: 200 }
+      )
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
     const body = await request.json()
     const { restaurantId, eventType, source, campaign, referrer } = body
 
@@ -64,7 +71,7 @@ export async function POST(request: NextRequest) {
     const city = request.headers.get('x-vercel-ip-city') || null
 
     // Hash IP for privacy
-    const ipHash = await hashIP(ip)
+    const ipHash = await hashIP(ip, supabaseKey)
     const deviceType = getDeviceType(userAgent)
 
     // Insert event (fire and forget pattern for speed)

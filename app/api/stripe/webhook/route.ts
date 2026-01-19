@@ -70,12 +70,14 @@ export async function POST(request: NextRequest) {
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
         // invoice.subscription can be string (ID) or Subscription object (if expanded) or null
+        // Use bracket notation to access subscription property safely
+        const subscriptionField = (invoice as any).subscription
         let subscriptionId: string | null = null
-        if ('subscription' in invoice && invoice.subscription) {
-          if (typeof invoice.subscription === 'string') {
-            subscriptionId = invoice.subscription
-          } else if (typeof invoice.subscription === 'object' && 'id' in invoice.subscription) {
-            subscriptionId = invoice.subscription.id
+        if (subscriptionField) {
+          if (typeof subscriptionField === 'string') {
+            subscriptionId = subscriptionField
+          } else if (typeof subscriptionField === 'object' && subscriptionField.id) {
+            subscriptionId = subscriptionField.id
           }
         }
         if (subscriptionId) {
@@ -88,12 +90,14 @@ export async function POST(request: NextRequest) {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
         // invoice.subscription can be string (ID) or Subscription object (if expanded) or null
+        // Use bracket notation to access subscription property safely
+        const subscriptionField = (invoice as any).subscription
         let subscriptionId: string | null = null
-        if ('subscription' in invoice && invoice.subscription) {
-          if (typeof invoice.subscription === 'string') {
-            subscriptionId = invoice.subscription
-          } else if (typeof invoice.subscription === 'object' && 'id' in invoice.subscription) {
-            subscriptionId = invoice.subscription.id
+        if (subscriptionField) {
+          if (typeof subscriptionField === 'string') {
+            subscriptionId = subscriptionField
+          } else if (typeof subscriptionField === 'object' && subscriptionField.id) {
+            subscriptionId = subscriptionField.id
           }
         }
         if (subscriptionId) {

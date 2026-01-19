@@ -33,3 +33,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# large database import files (too large for GitHub)
+database/restaurants_for_import.sql
+database/import_batches/*.sql

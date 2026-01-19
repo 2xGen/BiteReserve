@@ -79,11 +79,17 @@ export async function POST(request: NextRequest) {
     const updateData: any = {
       stripe_customer_id: customerId,
       stripe_subscription_id: stripeSubscription.id,
-      current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
-      trial_ends_at: stripeSubscription.trial_end 
-        ? new Date(stripeSubscription.trial_end * 1000).toISOString()
-        : null,
+    }
+
+    // Safely access Stripe subscription properties
+    if ('current_period_start' in stripeSubscription && typeof stripeSubscription.current_period_start === 'number') {
+      updateData.current_period_start = new Date(stripeSubscription.current_period_start * 1000).toISOString()
+    }
+    if ('current_period_end' in stripeSubscription && typeof stripeSubscription.current_period_end === 'number') {
+      updateData.current_period_end = new Date(stripeSubscription.current_period_end * 1000).toISOString()
+    }
+    if ('trial_end' in stripeSubscription && typeof stripeSubscription.trial_end === 'number') {
+      updateData.trial_ends_at = new Date(stripeSubscription.trial_end * 1000).toISOString()
     }
 
     if (subscription) {

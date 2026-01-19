@@ -319,21 +319,25 @@ export async function POST(request: NextRequest) {
           const stripeSubscription = await createProSubscription(customerId, priceId, 14)
 
           // Update subscription with Stripe IDs
+          const updateData: any = {
+            stripe_customer_id: customerId,
+            stripe_subscription_id: stripeSubscription.id,
+          }
+
+          // Safely access Stripe subscription properties
+          if ('current_period_start' in stripeSubscription && typeof stripeSubscription.current_period_start === 'number') {
+            updateData.current_period_start = new Date(stripeSubscription.current_period_start * 1000).toISOString()
+          }
+          if ('current_period_end' in stripeSubscription && typeof stripeSubscription.current_period_end === 'number') {
+            updateData.current_period_end = new Date(stripeSubscription.current_period_end * 1000).toISOString()
+          }
+          if ('trial_end' in stripeSubscription && typeof stripeSubscription.trial_end === 'number') {
+            updateData.trial_ends_at = new Date(stripeSubscription.trial_end * 1000).toISOString()
+          }
+
           const { error: stripeUpdateError } = await supabase
             .from('subscriptions')
-            .update({
-              stripe_customer_id: customerId,
-              stripe_subscription_id: stripeSubscription.id,
-              current_period_start: stripeSubscription.current_period_start 
-                ? new Date(stripeSubscription.current_period_start * 1000).toISOString()
-                : null,
-              current_period_end: stripeSubscription.current_period_end 
-                ? new Date(stripeSubscription.current_period_end * 1000).toISOString()
-                : null,
-              trial_ends_at: stripeSubscription.trial_end 
-                ? new Date(stripeSubscription.trial_end * 1000).toISOString()
-                : null,
-            })
+            .update(updateData)
             .eq('user_id', userId)
 
           if (stripeUpdateError) {

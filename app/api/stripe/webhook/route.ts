@@ -133,14 +133,20 @@ async function handleSubscriptionUpdate(
 
     const updateData: any = {
       status,
-      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      trial_ends_at: subscription.trial_end 
-        ? new Date(subscription.trial_end * 1000).toISOString()
-        : null,
-      canceled_at: subscription.canceled_at 
-        ? new Date(subscription.canceled_at * 1000).toISOString()
-        : null,
+    }
+
+    // Safely access Stripe subscription properties
+    if ('current_period_start' in subscription && typeof subscription.current_period_start === 'number') {
+      updateData.current_period_start = new Date(subscription.current_period_start * 1000).toISOString()
+    }
+    if ('current_period_end' in subscription && typeof subscription.current_period_end === 'number') {
+      updateData.current_period_end = new Date(subscription.current_period_end * 1000).toISOString()
+    }
+    if ('trial_end' in subscription && typeof subscription.trial_end === 'number') {
+      updateData.trial_ends_at = new Date(subscription.trial_end * 1000).toISOString()
+    }
+    if ('canceled_at' in subscription && typeof subscription.canceled_at === 'number') {
+      updateData.canceled_at = new Date(subscription.canceled_at * 1000).toISOString()
     }
 
     // If trial ended and subscription is now active, ensure Pro plan limits

@@ -5,14 +5,13 @@
 
 import Stripe from 'stripe'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
-}
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-12-18.acacia',
-  typescript: true,
-})
+// Stripe is optional - only initialize if key is provided
+// If no key, stripe will be null and Stripe features will be disabled
+export const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      typescript: true,
+    })
+  : null
 
 // Stripe Product/Price IDs (set these after creating products in Stripe Dashboard)
 // For now, we'll create them programmatically if they don't exist
@@ -35,6 +34,10 @@ export async function getOrCreateStripeCustomer(
   name?: string,
   userId?: string
 ): Promise<string> {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.')
+  }
+  
   try {
     // Check if customer already exists by email
     const existingCustomers = await stripe.customers.list({
@@ -70,6 +73,10 @@ export async function createProSubscription(
   priceId: string,
   trialDays: number = 14
 ): Promise<Stripe.Subscription> {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.')
+  }
+  
   try {
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
@@ -97,6 +104,10 @@ export async function createProSubscription(
  * Get subscription by ID
  */
 export async function getSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.')
+  }
+  
   try {
     const subscription = await stripe.subscriptions.retrieve(subscriptionId)
     return subscription
@@ -113,6 +124,10 @@ export async function cancelSubscription(
   subscriptionId: string,
   cancelImmediately: boolean = false
 ): Promise<Stripe.Subscription> {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.')
+  }
+  
   try {
     if (cancelImmediately) {
       return await stripe.subscriptions.cancel(subscriptionId)
@@ -135,6 +150,10 @@ export async function updateSubscription(
   subscriptionId: string,
   newPriceId: string
 ): Promise<Stripe.Subscription> {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.')
+  }
+  
   try {
     const subscription = await stripe.subscriptions.retrieve(subscriptionId)
     

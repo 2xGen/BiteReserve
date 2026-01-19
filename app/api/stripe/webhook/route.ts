@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
  * Handle subscription created/updated events
  */
 async function handleSubscriptionUpdate(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // Supabase client type
   subscription: Stripe.Subscription
 ) {
   try {
@@ -199,7 +199,7 @@ async function handleSubscriptionUpdate(
  * Handle subscription deleted event
  */
 async function handleSubscriptionDeleted(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // Supabase client type
   subscription: Stripe.Subscription
 ) {
   try {
@@ -240,7 +240,7 @@ async function handleSubscriptionDeleted(
  * Handle payment failed event
  */
 async function handlePaymentFailed(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any, // Supabase client type
   subscription: Stripe.Subscription
 ) {
   try {

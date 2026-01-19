@@ -69,8 +69,17 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
-        if (invoice.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
+        // invoice.subscription can be string (ID) or Subscription object (if expanded) or null
+        let subscriptionId: string | null = null
+        if ('subscription' in invoice && invoice.subscription) {
+          if (typeof invoice.subscription === 'string') {
+            subscriptionId = invoice.subscription
+          } else if (typeof invoice.subscription === 'object' && 'id' in invoice.subscription) {
+            subscriptionId = invoice.subscription.id
+          }
+        }
+        if (subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
           await handleSubscriptionUpdate(supabase, subscription)
         }
         break
@@ -78,8 +87,17 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
-        if (invoice.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
+        // invoice.subscription can be string (ID) or Subscription object (if expanded) or null
+        let subscriptionId: string | null = null
+        if ('subscription' in invoice && invoice.subscription) {
+          if (typeof invoice.subscription === 'string') {
+            subscriptionId = invoice.subscription
+          } else if (typeof invoice.subscription === 'object' && 'id' in invoice.subscription) {
+            subscriptionId = invoice.subscription.id
+          }
+        }
+        if (subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
           await handlePaymentFailed(supabase, subscription)
         }
         break

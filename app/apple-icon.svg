@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <rect width="180" height="180" rx="40" fill="#10B981"/>
+  <!-- Fork -->
+  <path d="M55 35v45c0 8 6 15 15 15v55a5 5 0 0010 0V95c10 0 15-7 15-15V35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M65 35v30M75 35v30M85 35v30" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  <!-- Knife -->
+  <path d="M115 35c-10 0-15 10-15 25v20c0 8 5 10 10 10h5v60a5 5 0 0010 0V35z" fill="white"/>
+</svg>

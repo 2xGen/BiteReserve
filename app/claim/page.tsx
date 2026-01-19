@@ -1,11 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+
+interface RestaurantSearchResult {
+  id: string
+  name: string
+  tagline: string | null
+  description: string | null
+  address: string | null
+  phone: string | null
+  website: string | null
+  cuisine: string[] | null
+  country_code: string
+  restaurant_number: string
+  is_claimed: boolean
+}
 
 const cuisineOptions = [
   'Italian', 'French', 'Spanish', 'Mediterranean', 'Japanese', 'Chinese', 
@@ -29,8 +43,9 @@ const bookingPlatformOptions = [
   { value: 'other', label: 'Other' }
 ]
 
-export default function ClaimPage() {
+function ClaimPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
   const [formData, setFormData] = useState({
     restaurantName: '',
@@ -49,6 +64,13 @@ export default function ClaimPage() {
   const [selectedPlan, setSelectedPlan] = useState<'free' | 'pro'>('free')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<RestaurantSearchResult[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [selectedRestaurant, setSelectedRestaurant] = useState<RestaurantSearchResult | null>(null)
+  const [showSearchResults, setShowSearchResults] = useState(false)
 
   // Pre-fill email if user is logged in
   useEffect(() => {
@@ -56,6 +78,115 @@ export default function ClaimPage() {
       setFormData(prev => ({ ...prev, email: user.email || '' }))
     }
   }, [user])
+
+  // Check URL params for restaurant lookup (from restaurant page)
+  useEffect(() => {
+    const country = searchParams.get('country')
+    const id = searchParams.get('id')
+    
+    if (country && id) {
+      handleRestaurantLookup(country, id)
+    }
+  }, [searchParams])
+
+  // Search restaurants
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query)
+    
+    if (query.length < 2) {
+      setSearchResults([])
+      setShowSearchResults(false)
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      const response = await fetch(`/api/restaurants/search?q=${encodeURIComponent(query)}`)
+      const data = await response.json()
+      setSearchResults(data.restaurants || [])
+      setShowSearchResults(true)
+    } catch (error) {
+      console.error('Search error:', error)
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  // Lookup specific restaurant by country/id
+  const handleRestaurantLookup = async (country: string, id: string) => {
+    setIsSearching(true)
+    try {
+      const response = await fetch(`/api/restaurants/search?country=${encodeURIComponent(country)}&id=${encodeURIComponent(id)}`)
+      const data = await response.json()
+      
+      if (data.restaurants && data.restaurants.length > 0) {
+        const restaurant = data.restaurants[0]
+        setSelectedRestaurant(restaurant)
+        prefillFormFromRestaurant(restaurant)
+      }
+    } catch (error) {
+      console.error('Lookup error:', error)
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  // Pre-fill form from restaurant data
+  const prefillFormFromRestaurant = (restaurant: RestaurantSearchResult) => {
+    // Extract city and country from address
+    const addressParts = restaurant.address?.split(',').map(s => s.trim()) || []
+    const city = addressParts.length > 1 ? addressParts[addressParts.length - 2] : ''
+    const country = addressParts.length > 0 ? addressParts[addressParts.length - 1] : ''
+
+    setFormData(prev => ({
+      ...prev,
+      restaurantName: restaurant.name || '',
+      address: restaurant.address || '',
+      city: city,
+      country: country || restaurant.country_code.toUpperCase(),
+      website: restaurant.website || '',
+      cuisineTypes: restaurant.cuisine || [],
+    }))
+    
+    setShowSearchResults(false)
+    setSearchQuery('')
+  }
+
+  // Select a restaurant from search results
+  const handleSelectRestaurant = (restaurant: RestaurantSearchResult) => {
+    setSelectedRestaurant(restaurant)
+    prefillFormFromRestaurant(restaurant)
+  }
+
+  // Clear selected restaurant and reset form
+  const handleClearSelection = () => {
+    setSelectedRestaurant(null)
+    setFormData(prev => ({
+      ...prev,
+      restaurantName: '',
+      address: '',
+      city: '',
+      country: '',
+      website: '',
+      cuisineTypes: [],
+    }))
+  }
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    if (!showSearchResults) return
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('[data-search-container]')) {
+        setShowSearchResults(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showSearchResults])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -213,6 +344,96 @@ export default function ClaimPage() {
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
               <div className="space-y-6">
                 
+                {/* Restaurant Lookup */}
+                {!selectedRestaurant && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      Is your restaurant already listed?
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Search to see if we already have your restaurant's information from Google Places. If found, we'll pre-fill the form for you.
+                    </p>
+                    <div className="relative" data-search-container>
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        onFocus={() => searchQuery.length >= 2 && searchResults.length > 0 && setShowSearchResults(true)}
+                        placeholder="Search by restaurant name..."
+                        className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
+                      />
+                      {isSearching && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <svg className="animate-spin w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        </div>
+                      )}
+                      {showSearchResults && searchResults.length > 0 && (
+                        <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                          {searchResults.map((restaurant) => (
+                            <button
+                              key={restaurant.id}
+                              type="button"
+                              onClick={() => handleSelectRestaurant(restaurant)}
+                              className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                            >
+                              <div className="font-semibold text-gray-900">{restaurant.name}</div>
+                              {restaurant.address && (
+                                <div className="text-sm text-gray-600 mt-1">{restaurant.address}</div>
+                              )}
+                              {restaurant.cuisine && restaurant.cuisine.length > 0 && (
+                                <div className="text-xs text-gray-500 mt-1">{restaurant.cuisine.join(', ')}</div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {showSearchResults && searchResults.length === 0 && searchQuery.length >= 2 && (
+                        <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-lg p-4 text-center text-gray-500">
+                          No restaurants found. Continue filling out the form below.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Selected Restaurant Info */}
+                {selectedRestaurant && (
+                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <h3 className="font-bold text-gray-900">Restaurant Found!</h3>
+                        </div>
+                        <p className="text-sm text-gray-700 mb-3">
+                          We found <strong>{selectedRestaurant.name}</strong> in our database. The form below has been pre-filled with information from <strong>Google Places API</strong>.
+                        </p>
+                        <p className="text-xs text-gray-600 bg-white/60 rounded-lg px-3 py-2">
+                          <strong>Note:</strong> This data was automatically imported from Google Places. Please review and update any information that needs correction.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleClearSelection}
+                        className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                        title="Clear selection"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Restaurant Info */}
                 <div>
                   <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -607,5 +828,24 @@ export default function ClaimPage() {
       </main>
       <Footer />
     </div>
+  )
+}
+
+export default function ClaimPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col bg-white">
+        <Header />
+        <main className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    }>
+      <ClaimPageContent />
+    </Suspense>
   )
 }

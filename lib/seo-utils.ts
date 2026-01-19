@@ -246,6 +246,6 @@ export function generateSEOKeywords(restaurant: Restaurant): string[] {
   
   // Additional intent keywords
   keywords.push('online reservation', 'table booking', 'make reservation')
-  
-  return [...new Set(keywords)] // Remove duplicates
+
+  return Array.from(new Set(keywords)) // Remove duplicates
 }

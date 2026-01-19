@@ -89,7 +89,7 @@ function DashboardContent() {
 
       setStats({
         ...totals,
-        conversionRate: totals.totalViews > 0 ? ((totals.totalReservations / totals.totalViews) * 100).toFixed(1) : '0.0',
+        conversionRate: totals.totalViews > 0 ? parseFloat(((totals.totalReservations / totals.totalViews) * 100).toFixed(1)) : 0,
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
@@ -198,7 +198,7 @@ function DashboardContent() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{stats.conversionRate}%</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.conversionRate.toFixed(1)}%</p>
                 </div>
               </div>
 

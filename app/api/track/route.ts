@@ -88,10 +88,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Also update daily stats (async, non-blocking)
-    supabase.rpc('increment_daily_stat', {
-      p_restaurant_id: restaurantId,
-      p_event_type: eventType
-    }).then(() => {}).catch(() => {})
+    ;(async () => {
+      try {
+        await supabase.rpc('increment_daily_stat', {
+          p_restaurant_id: restaurantId,
+          p_event_type: eventType
+        })
+      } catch {
+        // Ignore errors - this is fire-and-forget
+      }
+    })()
 
     return NextResponse.json({ success: true })
   } catch (error) {

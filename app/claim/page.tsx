@@ -737,7 +737,6 @@ function ClaimPageContent() {
                         {user && (
                           <p className="text-xs text-gray-500 mt-1">This email is linked to your account.</p>
                         )}
-                        />
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1">

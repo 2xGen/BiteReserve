@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     // Verify user exists in database
     const { data: existingUser, error: userError } = await supabase
       .from('users')
-      .select('id, email')
+      .select('id, email, name')
       .eq('id', providedUserId)
       .single()
 
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     const userId = providedUserId
 
-    // Update user name if provided
+    // Update user name if provided and different
     if (ownerName && ownerName !== existingUser.name) {
       await supabase
         .from('users')

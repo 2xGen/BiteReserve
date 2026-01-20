@@ -456,43 +456,43 @@ function DashboardContent() {
 
               {/* Approved Restaurants Dashboard */}
               {approvedRestaurants.length > 0 && selectedRestaurant && currentRestaurant ? (
-            <>
-              {/* Restaurant Header */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-1">{currentRestaurant.name}</h2>
-                    {currentRestaurant.tagline && (
-                      <p className="text-gray-600 mb-3">{currentRestaurant.tagline}</p>
-                    )}
-                    <div className="flex items-center gap-4 flex-wrap">
-                      {restaurantUrl && (
-                        <Link
-                          href={restaurantUrl}
-                          className="inline-flex items-center gap-2 text-sm text-accent-600 hover:text-accent-700 font-semibold"
-                        >
-                          View Public Page
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </Link>
-                      )}
-                      <Link
-                        href={`/dashboard/edit?id=${currentRestaurant.id}`}
-                        className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 font-semibold"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit Information
-                      </Link>
+                <>
+                  {/* Restaurant Header */}
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-1">{currentRestaurant.name}</h2>
+                        {currentRestaurant.tagline && (
+                          <p className="text-gray-600 mb-3">{currentRestaurant.tagline}</p>
+                        )}
+                        <div className="flex items-center gap-4 flex-wrap">
+                          {restaurantUrl && (
+                            <Link
+                              href={restaurantUrl}
+                              className="inline-flex items-center gap-2 text-sm text-accent-600 hover:text-accent-700 font-semibold"
+                            >
+                              View Public Page
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </Link>
+                          )}
+                          <Link
+                            href={`/dashboard/edit?id=${currentRestaurant.id}`}
+                            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 font-semibold"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Edit Information
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Time Period Selector */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                  {/* Time Period Selector */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Performance</h3>
                   <p className="text-gray-500 text-sm mt-1">Track how guests engage</p>
@@ -823,8 +823,8 @@ function DashboardContent() {
                   )}
                 </div>
               </div>
-            </>
-          ) : approvedRestaurants.length === 0 ? (
+                </>
+              ) : approvedRestaurants.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 sm:p-12 text-center">
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

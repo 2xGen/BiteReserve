@@ -246,8 +246,8 @@ function DashboardContent() {
     : currentRestaurant ? `/restaurant/${currentRestaurant.slug}` : null
 
   const canClaimMore = restaurantCount < maxRestaurants
-  
-  const planName = subscription?.plan 
+
+  const planName = subscription?.plan
     ? subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)
     : 'Free'
 

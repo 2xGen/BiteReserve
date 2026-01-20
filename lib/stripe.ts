@@ -66,7 +66,54 @@ export async function getOrCreateStripeCustomer(
 }
 
 /**
- * Create a subscription with 14-day trial
+ * Create a Stripe Checkout Session for subscription with 14-day trial
+ * This redirects user to Stripe Checkout to collect payment method
+ */
+export async function createCheckoutSession(
+  customerId: string,
+  priceId: string,
+  userId: string,
+  successUrl: string,
+  cancelUrl: string,
+  trialDays: number = 14
+): Promise<Stripe.Checkout.Session> {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.')
+  }
+  
+  try {
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'subscription',
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      subscription_data: {
+        trial_period_days: trialDays,
+        metadata: {
+          userId: userId,
+        },
+      },
+      payment_method_collection: 'always', // Require payment method for trial
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      allow_promotion_codes: true,
+      billing_address_collection: 'auto',
+    })
+
+    return session
+  } catch (error) {
+    console.error('Error creating Stripe checkout session:', error)
+    throw error
+  }
+}
+
+/**
+ * Create a subscription with 14-day trial (legacy - use createCheckoutSession instead)
+ * @deprecated Use createCheckoutSession for better UX with payment collection
  */
 export async function createProSubscription(
   customerId: string,
@@ -168,6 +215,30 @@ export async function updateSubscription(
     })
   } catch (error) {
     console.error('Error updating Stripe subscription:', error)
+    throw error
+  }
+}
+
+/**
+ * Create a Stripe Customer Portal session for subscription management
+ */
+export async function createCustomerPortalSession(
+  customerId: string,
+  returnUrl: string
+): Promise<Stripe.BillingPortal.Session> {
+  if (!stripe) {
+    throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY environment variable.')
+  }
+  
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: returnUrl,
+    })
+    
+    return session
+  } catch (error) {
+    console.error('Error creating Stripe Customer Portal session:', error)
     throw error
   }
 }

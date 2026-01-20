@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
+import { sendTransactionEmail, sendWelcomeEmail } from '@/lib/resend'
 
 // Note: Webhooks need Node.js runtime for proper body parsing
 export const runtime = 'nodejs'
@@ -61,6 +62,66 @@ export async function POST(request: NextRequest) {
 
     // Handle different event types
     switch (event.type) {
+      case 'checkout.session.completed': {
+        // Handle successful checkout - subscription is created automatically by Stripe
+        // Update subscription status from "pending" to "trialing" or "active"
+        const session = event.data.object as Stripe.Checkout.Session
+        if (session.mode === 'subscription' && session.subscription) {
+          const subscriptionId = typeof session.subscription === 'string' 
+            ? session.subscription 
+            : session.subscription.id
+          if (subscriptionId && stripe) {
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+            
+            // Update subscription - this will change status from "pending" to "trialing"/"active"
+            await handleSubscriptionUpdate(supabase, subscription)
+            
+            // Send welcome email if this is a new subscription from checkout
+            if (session.customer_email && session.metadata?.userId) {
+              try {
+                const { data: userData } = await supabase
+                  .from('users')
+                  .select('name')
+                  .eq('id', session.metadata.userId)
+                  .single()
+                
+                if (userData) {
+                  // Get restaurant name from user's claimed restaurants
+                  const { data: restaurantData } = await supabase
+                    .from('restaurants')
+                    .select('name')
+                    .eq('user_id', session.metadata.userId)
+                    .eq('is_claimed', true)
+                    .limit(1)
+                    .single()
+                  
+                  const restaurantName = restaurantData?.name || 'your restaurant'
+                  
+                  // Determine plan from price ID
+                  const priceId = subscription.items.data[0]?.price?.id
+                  const businessPriceIds = [
+                    process.env.STRIPE_PRICE_ID_BUSINESS_MONTHLY,
+                    process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL
+                  ]
+                  const plan = priceId && businessPriceIds.includes(priceId) ? 'business' : 'pro'
+                  
+                  await sendWelcomeEmail(
+                    session.customer_email,
+                    userData.name || 'there',
+                    restaurantName,
+                    plan as 'pro' | 'business'
+                  )
+                }
+              } catch (emailError) {
+                // Don't fail webhook if email fails
+                console.error('Error sending welcome email after checkout:', emailError)
+              }
+            }
+          }
+        }
+        break
+      }
+
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
@@ -90,6 +151,9 @@ export async function POST(request: NextRequest) {
         if (subscriptionId) {
           const subscription = await stripe.subscriptions.retrieve(subscriptionId)
           await handleSubscriptionUpdate(supabase, subscription)
+          
+          // Send transaction confirmation email
+          await handlePaymentSuccessEmail(supabase, invoice, subscription)
         }
         break
       }
@@ -178,8 +242,28 @@ async function handleSubscriptionUpdate(
       updateData.canceled_at = new Date(subscription.canceled_at * 1000).toISOString()
     }
 
-    // If trial ended and subscription is now active, ensure Pro plan limits
-    if (subscription.status === 'active' && !subscription.trial_end) {
+    // Determine plan type from Stripe price ID and set appropriate limits
+    const priceId = subscription.items.data[0]?.price?.id
+    const proMonthlyPriceId = process.env.STRIPE_PRICE_ID_PRO_MONTHLY
+    const proAnnualPriceId = process.env.STRIPE_PRICE_ID_PRO_ANNUAL
+    const businessMonthlyPriceId = process.env.STRIPE_PRICE_ID_BUSINESS_MONTHLY
+    const businessAnnualPriceId = process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL
+
+    // Set plan and limits based on price ID (during trial AND after trial)
+    // This ensures the subscription has the correct plan and limits from the start
+    if (priceId === businessMonthlyPriceId || priceId === businessAnnualPriceId) {
+      // Business plan limits: up to 15 restaurants
+      updateData.plan = 'business'
+      updateData.max_restaurants = 15
+      updateData.max_campaign_links = null // Unlimited
+      updateData.max_actions_per_month = null // Unlimited
+      updateData.analytics_retention_days = 365
+      updateData.remove_branding = true
+      updateData.weekly_email_reports = true
+    } else if (priceId === proMonthlyPriceId || priceId === proAnnualPriceId) {
+      // Pro plan limits: up to 3 restaurants
+      updateData.plan = 'pro'
+      updateData.max_restaurants = 3
       updateData.max_campaign_links = null // Unlimited
       updateData.max_actions_per_month = null // Unlimited
       updateData.analytics_retention_days = 90
@@ -188,7 +272,7 @@ async function handleSubscriptionUpdate(
     }
 
     if (existingSub) {
-      // Update existing subscription
+      // Update existing subscription by stripe_subscription_id
       const { error: updateError } = await supabase
         .from('subscriptions')
         .update(updateData)
@@ -198,14 +282,32 @@ async function handleSubscriptionUpdate(
         console.error('Error updating subscription:', updateError)
       }
     } else {
-      // Try to find by customer ID
-      const { data: customerSub } = await supabase
+      // Try to find by customer ID (this happens when subscription was created with status "pending")
+      // and we need to link it to the Stripe subscription
+      // Look for pending subscriptions first (newly created from checkout)
+      let { data: customerSub } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('stripe_customer_id', subscription.customer as string)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single()
 
+      // If no pending subscription found, get the most recent subscription for this customer
+      if (!customerSub || (customerSub as any).error) {
+        const { data: fallbackSub } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('stripe_customer_id', subscription.customer as string)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
+        customerSub = fallbackSub
+      }
+
       if (customerSub) {
+        // Update subscription: link stripe_subscription_id and update status from "pending" to "trialing"/"active"
         const { error: updateError } = await supabase
           .from('subscriptions')
           .update({
@@ -217,6 +319,10 @@ async function handleSubscriptionUpdate(
         if (updateError) {
           console.error('Error updating subscription by customer:', updateError)
         }
+      } else {
+        // If no subscription found, this might be a new subscription from Stripe
+        // We could create one here, but for now, just log a warning
+        console.warn('No subscription found for Stripe subscription:', subscription.id, 'customer:', subscription.customer)
       }
     }
   } catch (error) {
@@ -285,5 +391,88 @@ async function handlePaymentFailed(
     }
   } catch (error) {
     console.error('Error handling payment failed:', error)
+  }
+}
+
+/**
+ * Handle payment success email
+ */
+async function handlePaymentSuccessEmail(
+  supabase: any,
+  invoice: Stripe.Invoice,
+  subscription: Stripe.Subscription
+) {
+  try {
+    // Get user info from subscription
+    const { data: subData } = await supabase
+      .from('subscriptions')
+      .select('user_id, plan')
+      .eq('stripe_subscription_id', subscription.id)
+      .single()
+
+    if (!subData) {
+      console.warn('Subscription not found for payment success email')
+      return
+    }
+
+    // Get user email
+    const { data: userData } = await supabase
+      .from('users')
+      .select('email, name')
+      .eq('id', subData.user_id)
+      .single()
+
+    if (!userData || !userData.email) {
+      console.warn('User not found for payment success email')
+      return
+    }
+
+    // Determine plan type and billing cycle from price ID
+    const priceId = subscription.items.data[0]?.price?.id
+    const proMonthlyPriceId = process.env.STRIPE_PRICE_ID_PRO_MONTHLY
+    const proAnnualPriceId = process.env.STRIPE_PRICE_ID_PRO_ANNUAL
+    const businessMonthlyPriceId = process.env.STRIPE_PRICE_ID_BUSINESS_MONTHLY
+    const businessAnnualPriceId = process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL
+
+    let plan: 'pro' | 'business' | null = null
+    let billingCycle: 'monthly' | 'annual' | null = null
+
+    if (priceId === proMonthlyPriceId) {
+      plan = 'pro'
+      billingCycle = 'monthly'
+    } else if (priceId === proAnnualPriceId) {
+      plan = 'pro'
+      billingCycle = 'annual'
+    } else if (priceId === businessMonthlyPriceId) {
+      plan = 'business'
+      billingCycle = 'monthly'
+    } else if (priceId === businessAnnualPriceId) {
+      plan = 'business'
+      billingCycle = 'annual'
+    }
+
+    if (!plan || !billingCycle) {
+      console.warn('Could not determine plan type from price ID:', priceId)
+      return
+    }
+
+    // Get invoice amount and currency
+    const amount = invoice.amount_paid || invoice.total || 0
+    const currency = invoice.currency || 'usd'
+    const invoiceUrl = invoice.hosted_invoice_url || undefined
+
+    // Send transaction email
+    await sendTransactionEmail(
+      userData.email,
+      userData.name || 'there',
+      plan,
+      billingCycle,
+      amount,
+      currency,
+      invoiceUrl
+    )
+  } catch (error) {
+    // Don't fail webhook if email fails
+    console.error('Error sending payment success email:', error)
   }
 }

@@ -12,6 +12,23 @@ export const metadata: Metadata = {
     index: false,
     follow: false,
   },
+  openGraph: {
+    title: 'Browse Destinations - BiteReserve',
+    type: 'website',
+    images: [
+      {
+        url: 'https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png',
+        width: 1200,
+        height: 630,
+        alt: 'BiteReserve',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Browse Destinations - BiteReserve',
+    images: ['https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png'],
+  },
 }
 const destinations = [
   { name: 'Aruba', slug: 'aruba' },

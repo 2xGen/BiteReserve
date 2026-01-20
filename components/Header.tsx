@@ -21,14 +21,6 @@ export default function Header() {
             <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
               About
             </Link>
-            <a
-              href="https://2xgen.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors"
-            >
-              For Restaurants
-            </a>
             {!loading && (
               user ? (
                 <Link 
@@ -78,15 +70,6 @@ export default function Header() {
               >
                 About
               </Link>
-              <a
-                href="https://2xgen.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-3 text-base font-medium text-gray-700 hover:text-accent-600 hover:bg-gray-50 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                For Restaurants
-              </a>
               <div className="border-t border-gray-100 mt-2 pt-2 space-y-2">
                 {!loading && (
                   user ? (

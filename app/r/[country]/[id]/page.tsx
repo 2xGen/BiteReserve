@@ -20,7 +20,7 @@ interface Restaurant {
   price_level: string | null
   cuisine: string[] | null
   features: string[] | null
-  hours: Record<string, string> | null
+  hours: Record<string, string> | Array<{days?: string[] | string, time?: string, label?: string, day?: string}> | null
   booking_url: string | null
   booking_platform: string | null
   is_claimed: boolean
@@ -280,8 +280,60 @@ export default function RestaurantPage() {
     )
   }
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as keyof typeof restaurant.hours
-  const hours = restaurant.hours || {}
+  // Normalize hours data - handle both Record<string, string> and array of objects formats
+  const normalizeHours = (hoursData: any): Record<string, string> => {
+    if (!hoursData) return {}
+    
+    // If it's already a Record<string, string>, return as is
+    if (typeof hoursData === 'object' && !Array.isArray(hoursData)) {
+      // Check if it's a plain object with string values
+      const isStringRecord = Object.values(hoursData).every(val => 
+        typeof val === 'string' || val === null || val === undefined
+      )
+      if (isStringRecord) {
+        return hoursData as Record<string, string>
+      }
+    }
+    
+    // If it's an array of objects (Google Places format: [{days, time, label}])
+    if (Array.isArray(hoursData)) {
+      const normalized: Record<string, string> = {}
+      const dayMap: Record<string, string> = {
+        'monday': 'monday',
+        'tuesday': 'tuesday',
+        'wednesday': 'wednesday',
+        'thursday': 'thursday',
+        'friday': 'friday',
+        'saturday': 'saturday',
+        'sunday': 'sunday',
+      }
+      
+      hoursData.forEach((item: any) => {
+        if (item && typeof item === 'object') {
+          const timeStr = item.time || item.label || ''
+          if (item.days && Array.isArray(item.days)) {
+            item.days.forEach((day: string) => {
+              const dayKey = dayMap[day.toLowerCase()] || day.toLowerCase()
+              if (normalized[dayKey]) {
+                normalized[dayKey] += ', ' + timeStr
+              } else {
+                normalized[dayKey] = timeStr
+              }
+            })
+          } else if (item.day) {
+            const dayKey = dayMap[item.day.toLowerCase()] || item.day.toLowerCase()
+            normalized[dayKey] = timeStr
+          }
+        }
+      })
+      return normalized
+    }
+    
+    return {}
+  }
+
+  const hours = normalizeHours(restaurant.hours)
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
   const isOpen = hours[today] ? true : false // Simple check - could be enhanced
 
   return (
@@ -372,9 +424,12 @@ export default function RestaurantPage() {
                               )}
                             </div>
                             <div className={`font-semibold text-right text-xs sm:text-sm ${day === today ? 'text-accent-600' : 'text-gray-900'}`}>
-                              {time.split(', ').map((slot, i) => (
-                                <div key={i}>{slot}</div>
-                              ))}
+                              {typeof time === 'string' && time.trim() 
+                                ? time.split(', ').map((slot, i) => (
+                                    <div key={i}>{slot.trim()}</div>
+                                  ))
+                                : <div>Closed</div>
+                              }
                             </div>
                           </div>
                         ))}

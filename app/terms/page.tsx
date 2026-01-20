@@ -1,8 +1,28 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Terms and Conditions | BiteReserve',
   description: 'BiteReserve Terms and Conditions - Terms of Service for using our restaurant tracking platform.',
+  openGraph: {
+    title: 'Terms and Conditions | BiteReserve',
+    description: 'BiteReserve Terms and Conditions - Terms of Service for using our restaurant tracking platform.',
+    type: 'website',
+    images: [
+      {
+        url: 'https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png',
+        width: 1200,
+        height: 630,
+        alt: 'BiteReserve',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Terms and Conditions | BiteReserve',
+    description: 'BiteReserve Terms and Conditions - Terms of Service for using our restaurant tracking platform.',
+    images: ['https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png'],
+  },
 }
 
 export default function TermsPage() {

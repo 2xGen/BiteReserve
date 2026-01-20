@@ -47,6 +47,8 @@ function ClaimPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
+  
+  // All hooks must be declared before any conditional returns
   const [formData, setFormData] = useState({
     restaurantName: '',
     ownerName: '',
@@ -61,7 +63,8 @@ function ClaimPageContent() {
     howDidYouHear: '',
     notes: ''
   })
-  const [selectedPlan, setSelectedPlan] = useState<'free' | 'pro'>('free')
+  const [selectedPlan, setSelectedPlan] = useState<'free' | 'pro' | 'business'>('free')
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   
@@ -72,47 +75,29 @@ function ClaimPageContent() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<RestaurantSearchResult | null>(null)
   const [showSearchResults, setShowSearchResults] = useState(false)
 
-  // Pre-fill email if user is logged in
+  // Check if user was canceled from Stripe Checkout
+  const canceled = searchParams.get('canceled') === 'true'
+  
+  // ALL useEffect hooks must be declared before conditional returns
+  // Show cancel message if user canceled checkout
   useEffect(() => {
-    if (user && user.email && !formData.email) {
-      setFormData(prev => ({ ...prev, email: user.email || '' }))
+    if (canceled) {
+      alert('Checkout was canceled. Your restaurant claim has been saved, but your subscription was not started. You can try again from your dashboard.')
+    }
+  }, [canceled])
+
+  // Pre-fill email and name from logged-in user (required)
+  useEffect(() => {
+    if (user && user.email) {
+      setFormData(prev => ({ 
+        ...prev, 
+        email: user.email || '',
+        ownerName: prev.ownerName || (user.user_metadata?.name || '')
+      }))
     }
   }, [user])
 
-  // Check URL params for restaurant lookup (from restaurant page)
-  useEffect(() => {
-    const country = searchParams.get('country')
-    const id = searchParams.get('id')
-    
-    if (country && id) {
-      handleRestaurantLookup(country, id)
-    }
-  }, [searchParams])
-
-  // Search restaurants
-  const handleSearch = async (query: string) => {
-    setSearchQuery(query)
-    
-    if (query.length < 2) {
-      setSearchResults([])
-      setShowSearchResults(false)
-      return
-    }
-
-    setIsSearching(true)
-    try {
-      const response = await fetch(`/api/restaurants/search?q=${encodeURIComponent(query)}`)
-      const data = await response.json()
-      setSearchResults(data.restaurants || [])
-      setShowSearchResults(true)
-    } catch (error) {
-      console.error('Search error:', error)
-      setSearchResults([])
-    } finally {
-      setIsSearching(false)
-    }
-  }
-
+  // Define functions before useEffect hooks that use them
   // Lookup specific restaurant by country/id
   const handleRestaurantLookup = async (country: string, id: string) => {
     setIsSearching(true)
@@ -153,6 +138,145 @@ function ClaimPageContent() {
     setSearchQuery('')
   }
 
+  // Check URL params for restaurant lookup (from restaurant page)
+  useEffect(() => {
+    const country = searchParams.get('country')
+    const id = searchParams.get('id')
+    
+    if (country && id && user) { // Only lookup if user is logged in
+      handleRestaurantLookup(country, id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, user])
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    if (!showSearchResults) return
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('[data-search-container]')) {
+        setShowSearchResults(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showSearchResults])
+  
+  // Show login prompt if not authenticated (after all hooks)
+  if (!authLoading && !user) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Header />
+        <main className="flex-grow">
+          {/* Hero */}
+          <section className="relative py-16 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent-500 via-accent-600 to-accent-700"></div>
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0" style={{
+                backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px)',
+                backgroundSize: '20px 20px'
+              }}></div>
+            </div>
+            <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                Claim Your Restaurant
+              </h1>
+              <p className="text-xl text-white/80 max-w-2xl mx-auto">
+                Get your free BiteReserve page and start tracking where your guests come from.
+              </p>
+            </div>
+          </section>
+
+          {/* Login Required Message */}
+          <section className="py-16 relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white"></div>
+            <div className="relative max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 md:p-12 text-center">
+                <div className="w-20 h-20 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-10 h-10 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  Account Required
+                </h2>
+                
+                <p className="text-lg text-gray-600 mb-8 max-w-md mx-auto">
+                  You need to have an account to claim a restaurant. This ensures you can access your dashboard and manage your restaurant page.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-accent-600 hover:bg-accent-700 text-white font-bold rounded-xl transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    Create Free Account
+                  </Link>
+                  
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-gray-300 hover:border-gray-400 text-gray-700 font-semibold rounded-xl transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                    Sign In
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+  
+  // Show loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Header />
+        <main className="flex-grow flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-accent-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  // Search restaurants
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query)
+    
+    if (query.length < 2) {
+      setSearchResults([])
+      setShowSearchResults(false)
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      const response = await fetch(`/api/restaurants/search?q=${encodeURIComponent(query)}`)
+      const data = await response.json()
+      setSearchResults(data.restaurants || [])
+      setShowSearchResults(true)
+    } catch (error) {
+      console.error('Search error:', error)
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
   // Select a restaurant from search results
   const handleSelectRestaurant = (restaurant: RestaurantSearchResult) => {
     setSelectedRestaurant(restaurant)
@@ -172,21 +296,6 @@ function ClaimPageContent() {
       cuisineTypes: [],
     }))
   }
-
-  // Close search results when clicking outside
-  useEffect(() => {
-    if (!showSearchResults) return
-
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (!target.closest('[data-search-container]')) {
-        setShowSearchResults(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showSearchResults])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -221,10 +330,11 @@ function ClaimPageContent() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          // User info
-          email: formData.email,
+          // User info (use logged-in user's data)
+          email: user?.email || formData.email, // Use logged-in user's email
           ownerName: formData.ownerName,
           phone: formData.phone,
+          userId: user?.id, // Pass logged-in user's ID
           // Restaurant info
           restaurantId: selectedRestaurant?.id || null, // If claiming existing restaurant
           restaurantName: formData.restaurantName,
@@ -236,6 +346,7 @@ function ClaimPageContent() {
           bookingPlatforms: formData.bookingPlatforms,
           // Plan selection
           selectedPlan,
+          billingCycle: (selectedPlan === 'pro' || selectedPlan === 'business') ? billingCycle : undefined,
           // Optional
           howDidYouHear: formData.howDidYouHear,
           notes: formData.notes
@@ -248,7 +359,13 @@ function ClaimPageContent() {
         throw new Error(data.error || 'Failed to submit claim')
       }
 
-      // Success - show success screen
+      // If Pro/Business plan, redirect to Stripe Checkout
+      if (data.checkoutUrl && data.requiresPayment) {
+        window.location.href = data.checkoutUrl
+        return
+      }
+
+      // Success - show success screen (for Free plan)
       setIsSubmitted(true)
     } catch (error) {
       console.error('Claim submission error:', error)
@@ -614,7 +731,12 @@ function ClaimPageContent() {
                           onChange={handleChange}
                           required
                           placeholder="you@restaurant.com"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
+                          disabled={!!user} // Disable if user is logged in (can't change email)
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                        />
+                        {user && (
+                          <p className="text-xs text-gray-500 mt-1">This email is linked to your account.</p>
+                        )}
                         />
                       </div>
                       <div>
@@ -773,10 +895,66 @@ function ClaimPageContent() {
                         <span className="font-bold text-gray-900">14-Day Pro Trial</span>
                         <div className="text-right">
                           <span className="text-2xl font-black text-gray-900">$0</span>
-                          <span className="text-xs text-gray-500 block">then $29/mo</span>
+                          <span className="text-xs text-gray-500 block">
+                            {selectedPlan === 'pro' && billingCycle === 'annual' 
+                              ? 'then $290/year' 
+                              : 'then $29/mo'}
+                          </span>
                         </div>
                       </div>
+                      
+                      {/* Billing Cycle Toggle - Only show for Pro plan */}
+                      {selectedPlan === 'pro' && (
+                        <div className="mb-3 pt-3 border-t border-gray-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm font-medium text-gray-700">Billing Cycle</span>
+                            <span className="text-xs text-gray-500">
+                              {billingCycle === 'annual' ? 'Save 2 months' : 'Monthly'}
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setBillingCycle('monthly')
+                              }}
+                              className={`w-full py-3 px-4 rounded-lg text-sm font-semibold transition-all text-left ${
+                                billingCycle === 'monthly'
+                                  ? 'bg-accent-600 text-white border-2 border-accent-700'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
+                              }`}
+                            >
+                              $29/mo
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setBillingCycle('annual')
+                              }}
+                              className={`w-full py-3 px-4 rounded-lg text-sm font-semibold transition-all relative text-left ${
+                                billingCycle === 'annual'
+                                  ? 'bg-accent-600 text-white border-2 border-accent-700'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
+                              }`}
+                            >
+                              $290/year
+                              {billingCycle === 'annual' && (
+                                <span className="absolute top-2 right-3 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">2 mo free</span>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
                       <ul className="text-sm text-gray-600 space-y-1">
+                        <li className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-accent-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Up to <strong>3 restaurants</strong>
+                        </li>
                         <li className="flex items-center gap-1.5">
                           <svg className="w-4 h-4 text-accent-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -807,6 +985,89 @@ function ClaimPageContent() {
                       )}
                     </button>
                   </div>
+
+                  {/* Business Plan - Subtle Option */}
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPlan('business')}
+                      className={`w-full p-3 rounded-lg border text-left transition-all ${
+                        selectedPlan === 'business'
+                          ? 'border-accent-500 bg-accent-50'
+                          : 'border-gray-200 hover:border-gray-300 bg-gray-50/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-gray-900 text-sm">Business Plan</span>
+                            <span className="text-xs text-gray-500">• Multiple restaurants</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                            <span>
+                              {selectedPlan === 'business' && billingCycle === 'annual'
+                                ? '$990/year'
+                                : '$99/mo'}
+                            </span>
+                            <span className="text-gray-400">•</span>
+                            <span>Up to 15 restaurants</span>
+                            <span className="text-gray-400">•</span>
+                            <span>365 days analytics</span>
+                          </div>
+                          
+                          {/* Billing Cycle Toggle - Only show for Business plan */}
+                          {selectedPlan === 'business' && (
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="text-sm font-medium text-gray-700">Billing Cycle</span>
+                                <span className="text-xs text-gray-500">
+                                  {billingCycle === 'annual' ? 'Save 2 months' : 'Monthly'}
+                                </span>
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setBillingCycle('monthly')
+                                  }}
+                                  className={`w-full py-3 px-4 rounded-lg text-sm font-semibold transition-all text-left ${
+                                    billingCycle === 'monthly'
+                                      ? 'bg-accent-600 text-white border-2 border-accent-700'
+                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
+                                  }`}
+                                >
+                                  $99/mo
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setBillingCycle('annual')
+                                  }}
+                                  className={`w-full py-3 px-4 rounded-lg text-sm font-semibold transition-all relative text-left ${
+                                    billingCycle === 'annual'
+                                      ? 'bg-accent-600 text-white border-2 border-accent-700'
+                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent'
+                                  }`}
+                                >
+                                  $990/year
+                                  {billingCycle === 'annual' && (
+                                    <span className="absolute top-2 right-3 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">2 mo free</span>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {selectedPlan === 'business' && (
+                          <svg className="w-5 h-5 text-accent-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Submit */}
@@ -826,7 +1087,12 @@ function ClaimPageContent() {
                       </>
                     ) : (
                       <>
-                        {selectedPlan === 'pro' ? 'Start My 14-Day Pro Trial' : 'Claim My Restaurant — Free'}
+                        {selectedPlan === 'free'
+                          ? 'Claim My Restaurant — Free'
+                          : selectedPlan === 'pro'
+                          ? `Start My 14-Day Pro Trial${billingCycle === 'annual' ? ' (Annual)' : ''}`
+                          : `Start Business Plan${billingCycle === 'annual' ? ' (Annual)' : ''}`
+                        }
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>

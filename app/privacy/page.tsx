@@ -1,8 +1,28 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Privacy Policy | BiteReserve',
   description: 'BiteReserve Privacy Policy - How we collect, use, and protect your information.',
+  openGraph: {
+    title: 'Privacy Policy | BiteReserve',
+    description: 'BiteReserve Privacy Policy - How we collect, use, and protect your information.',
+    type: 'website',
+    images: [
+      {
+        url: 'https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png',
+        width: 1200,
+        height: 630,
+        alt: 'BiteReserve',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Privacy Policy | BiteReserve',
+    description: 'BiteReserve Privacy Policy - How we collect, use, and protect your information.',
+    images: ['https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png'],
+  },
 }
 
 export default function PrivacyPage() {

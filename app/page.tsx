@@ -248,7 +248,7 @@ export default function Home() {
         </section>
 
         {/* How It Works - Mobile optimized */}
-        <section className="py-10 sm:py-20 bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100">
+        <section className="py-10 sm:py-20 bg-gradient-to-br from-gray-100 via-slate-100 to-gray-100">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-6 sm:mb-12">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">
@@ -258,23 +258,23 @@ export default function Home() {
 
             {/* Mobile: vertical stack with connecting lines */}
             <div className="flex flex-col md:flex-row items-center justify-center gap-3 sm:gap-4 md:gap-8">
-              <div className="flex items-center gap-3 sm:gap-4 bg-white rounded-xl px-4 sm:px-6 py-3 sm:py-4 shadow-sm w-full md:w-auto">
+              <div className="flex items-center gap-3 sm:gap-4 bg-white rounded-xl px-4 sm:px-6 py-3 sm:py-4 shadow-md border border-gray-200 w-full md:w-auto">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">1</div>
                 <span className="font-semibold text-gray-900 text-sm sm:text-base">Claim your page</span>
               </div>
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 rotate-90 md:rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 rotate-90 md:rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
-              <div className="flex items-center gap-3 sm:gap-4 bg-white rounded-xl px-4 sm:px-6 py-3 sm:py-4 shadow-sm w-full md:w-auto">
+              <div className="flex items-center gap-3 sm:gap-4 bg-white rounded-xl px-4 sm:px-6 py-3 sm:py-4 shadow-md border border-gray-200 w-full md:w-auto">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">2</div>
                 <span className="font-semibold text-gray-900 text-sm sm:text-base">Create tracking links</span>
               </div>
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 rotate-90 md:rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 rotate-90 md:rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
-              <div className="flex items-center gap-3 sm:gap-4 bg-white rounded-xl px-4 sm:px-6 py-3 sm:py-4 shadow-sm w-full md:w-auto">
+              <div className="flex items-center gap-3 sm:gap-4 bg-white rounded-xl px-4 sm:px-6 py-3 sm:py-4 shadow-md border border-gray-200 w-full md:w-auto">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">3</div>
-                <span className="font-semibold text-gray-900 text-sm sm:text-base">See who sends guests</span>
+                <span className="font-semibold text-gray-900 text-sm sm:text-base">See who sends guests to your restaurant</span>
               </div>
             </div>
           </div>
@@ -390,6 +390,10 @@ export default function Home() {
                 <ul className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6 text-xs sm:text-sm">
                   <li className="flex items-center gap-2 text-gray-700">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    Up to <strong>3 restaurants</strong>
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-700">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                     <strong>Unlimited</strong> actions
                   </li>
                   <li className="flex items-center gap-2 text-gray-700">
@@ -413,7 +417,7 @@ export default function Home() {
             </div>
 
             <p className="text-center text-xs sm:text-sm text-gray-500 mt-5 sm:mt-8">
-              Multiple restaurants? <Link href="/claim" className="text-accent-600 font-semibold hover:underline">Business plan ($99/mo)</Link>
+              Need more than 3 restaurants? <Link href="/claim" className="text-accent-600 font-semibold hover:underline">Business plan ($99/mo) - up to 15 locations</Link>
             </p>
           </div>
         </section>

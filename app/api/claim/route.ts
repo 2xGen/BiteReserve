@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-import { getOrCreateStripeCustomer, createProSubscription } from '@/lib/stripe'
+import { getOrCreateStripeCustomer, createCheckoutSession } from '@/lib/stripe'
+import { sendWelcomeEmail } from '@/lib/resend'
 
 export const runtime = 'edge'
 
@@ -22,10 +23,11 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const {
-      // User info
+      // User info (user must be authenticated)
       email,
       ownerName,
       phone,
+      userId: providedUserId, // User ID from authenticated session
       // Restaurant info
       restaurantId, // If claiming existing restaurant
       restaurantName,
@@ -36,7 +38,8 @@ export async function POST(request: NextRequest) {
       cuisineTypes,
       bookingPlatforms,
       // Plan selection
-      selectedPlan, // 'free' or 'pro'
+      selectedPlan, // 'free', 'pro', or 'business'
+      billingCycle, // 'monthly' or 'annual' (only for paid plans)
       // Optional
       howDidYouHear,
       notes
@@ -50,62 +53,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already exists (by email)
-    const { data: existingUser } = await supabase
+    // User must be authenticated - userId is required
+    if (!providedUserId) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please log in to claim a restaurant.' },
+        { status: 401 }
+      )
+    }
+
+    // Verify user exists in database
+    const { data: existingUser, error: userError } = await supabase
       .from('users')
       .select('id, email')
-      .eq('email', email.toLowerCase().trim())
+      .eq('id', providedUserId)
       .single()
 
-    let userId: string
+    if (userError || !existingUser) {
+      return NextResponse.json(
+        { error: 'User not found. Please log in with a valid account.' },
+        { status: 404 }
+      )
+    }
 
-    if (existingUser) {
-      // User exists, use their ID
-      userId = existingUser.id
-      
-      // Update user name if provided
-      if (ownerName) {
-        await supabase
-          .from('users')
-          .update({ name: ownerName })
-          .eq('id', userId)
-      }
-    } else {
-      // Create new user in Supabase Auth first
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: email.toLowerCase().trim(),
-        email_confirm: true, // Auto-confirm email for now
-        user_metadata: {
-          name: ownerName
-        }
-      })
+    // Verify email matches (security check)
+    if (existingUser.email.toLowerCase().trim() !== email.toLowerCase().trim()) {
+      return NextResponse.json(
+        { error: 'Email mismatch. Please use the email address associated with your account.' },
+        { status: 403 }
+      )
+    }
 
-      if (authError || !authData.user) {
-        console.error('Auth user creation error:', authError)
-        return NextResponse.json(
-          { error: 'Failed to create user account' },
-          { status: 500 }
-        )
-      }
+    const userId = providedUserId
 
-      // Create user record in public.users table
-      const { error: userError } = await supabase
+    // Update user name if provided
+    if (ownerName && ownerName !== existingUser.name) {
+      await supabase
         .from('users')
-        .insert({
-          id: authData.user.id,
-          email: email.toLowerCase().trim(),
-          name: ownerName
-        })
-
-      if (userError) {
-        console.error('User creation error:', userError)
-        return NextResponse.json(
-          { error: 'Failed to create user record' },
-          { status: 500 }
-        )
-      }
-
-      userId = authData.user.id
+        .update({ name: ownerName })
+        .eq('id', userId)
     }
 
     // Handle restaurant claim/creation
@@ -247,16 +232,35 @@ export async function POST(request: NextRequest) {
       .eq('user_id', userId)
       .single()
 
+    // Determine initial status based on plan
+    // For Pro/Business: set to "pending" until Stripe webhook confirms payment
+    // For Free: set to "active" immediately
+    const initialStatus = (selectedPlan === 'pro' || selectedPlan === 'business') ? 'pending' : 'active'
+
     let subscriptionData: any = {
       user_id: userId,
-      plan: selectedPlan === 'pro' ? 'pro' : 'free',
-      status: selectedPlan === 'pro' ? 'trialing' : 'active'
+      plan: selectedPlan === 'pro' ? 'pro' : selectedPlan === 'business' ? 'business' : 'free',
+      status: initialStatus
     }
 
     // Set plan limits based on plan type
-    if (selectedPlan === 'pro') {
-      // Pro plan: unlimited actions, unlimited links, 90 days analytics
-      subscriptionData.max_restaurants = 1 // Can be increased for business plan later
+    if (selectedPlan === 'business') {
+      // Business plan: up to 15 restaurants, unlimited everything else, 365 days analytics
+      subscriptionData.max_restaurants = 15
+      subscriptionData.max_campaign_links = null // Unlimited
+      subscriptionData.max_actions_per_month = null // Unlimited
+      subscriptionData.analytics_retention_days = 365
+      subscriptionData.remove_branding = true
+      subscriptionData.weekly_email_reports = true
+      
+      // Set trial end date (14 days from now)
+      const trialEndDate = new Date()
+      trialEndDate.setDate(trialEndDate.getDate() + 14)
+      subscriptionData.trial_ends_at = trialEndDate.toISOString()
+      subscriptionData.current_period_end = trialEndDate.toISOString()
+    } else if (selectedPlan === 'pro') {
+      // Pro plan: up to 3 restaurants, unlimited actions, unlimited links, 90 days analytics
+      subscriptionData.max_restaurants = 3
       subscriptionData.max_campaign_links = null // Unlimited
       subscriptionData.max_actions_per_month = null // Unlimited
       subscriptionData.analytics_retention_days = 90
@@ -301,11 +305,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Stripe Integration for Pro plan
-    if (selectedPlan === 'pro' && process.env.STRIPE_SECRET_KEY) {
+    // Stripe Integration for Pro and Business plans
+    // For paid plans, create Stripe Checkout Session and redirect to payment
+    if ((selectedPlan === 'pro' || selectedPlan === 'business') && process.env.STRIPE_SECRET_KEY) {
       try {
-        // Get Stripe price ID (monthly by default)
-        const priceId = process.env.STRIPE_PRICE_ID_PRO_MONTHLY
+        // Get Stripe price ID based on plan and billing cycle
+        const isAnnual = billingCycle === 'annual'
+        const priceId = selectedPlan === 'business'
+          ? (isAnnual 
+              ? process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL 
+              : process.env.STRIPE_PRICE_ID_BUSINESS_MONTHLY)
+          : (isAnnual
+              ? process.env.STRIPE_PRICE_ID_PRO_ANNUAL
+              : process.env.STRIPE_PRICE_ID_PRO_MONTHLY)
 
         if (priceId) {
           // Create or get Stripe customer
@@ -315,58 +327,74 @@ export async function POST(request: NextRequest) {
             userId
           )
 
-          // Create subscription with 14-day trial
-          const stripeSubscription = await createProSubscription(customerId, priceId, 14)
-
-          // Update subscription with Stripe IDs
-          const updateData: any = {
-            stripe_customer_id: customerId,
-            stripe_subscription_id: stripeSubscription.id,
-          }
-
-          // Safely access Stripe subscription properties
-          if ('current_period_start' in stripeSubscription && typeof stripeSubscription.current_period_start === 'number') {
-            updateData.current_period_start = new Date(stripeSubscription.current_period_start * 1000).toISOString()
-          }
-          if ('current_period_end' in stripeSubscription && typeof stripeSubscription.current_period_end === 'number') {
-            updateData.current_period_end = new Date(stripeSubscription.current_period_end * 1000).toISOString()
-          }
-          if ('trial_end' in stripeSubscription && typeof stripeSubscription.trial_end === 'number') {
-            updateData.trial_ends_at = new Date(stripeSubscription.trial_end * 1000).toISOString()
-          }
-
-          const { error: stripeUpdateError } = await supabase
+          // Update subscription with Stripe customer ID BEFORE creating checkout session
+          // This ensures we can link the subscription when webhook arrives
+          const { error: customerUpdateError } = await supabase
             .from('subscriptions')
-            .update(updateData)
+            .update({
+              stripe_customer_id: customerId,
+            })
             .eq('user_id', userId)
 
-          if (stripeUpdateError) {
-            console.error('Error updating subscription with Stripe IDs:', stripeUpdateError)
-            // Don't fail - subscription is created in Stripe
+          if (customerUpdateError) {
+            console.error('Error updating subscription with Stripe customer ID:', customerUpdateError)
           }
+
+          // Build success and cancel URLs
+          const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+          const successUrl = `${baseUrl}/claim/success?session_id={CHECKOUT_SESSION_ID}&user_id=${userId}`
+          const cancelUrl = `${baseUrl}/claim?canceled=true`
+
+          // Create Stripe Checkout Session (redirects to payment)
+          // Subscription status remains "pending" until webhook confirms payment
+          const checkoutSession = await createCheckoutSession(
+            customerId,
+            priceId,
+            userId,
+            successUrl,
+            cancelUrl,
+            14 // 14-day trial
+          )
+
+          // Return checkout URL to redirect user to Stripe
+          // Webhook will update subscription status from "pending" to "trialing" when checkout completes
+          return NextResponse.json({
+            success: true,
+            checkoutUrl: checkoutSession.url,
+            userId,
+            restaurantId: restaurantIdToLink,
+            plan: selectedPlan,
+            requiresPayment: true,
+            message: 'Please complete payment to start your trial'
+          })
         } else {
-          console.warn('STRIPE_PRICE_ID_PRO_MONTHLY not set - skipping Stripe subscription creation')
+          console.warn('STRIPE_PRICE_ID_PRO_MONTHLY not set - skipping Stripe checkout creation')
         }
       } catch (stripeError) {
-        // Log error but don't fail the claim - subscription is created in DB
+        // Log error but don't fail the claim - subscription is created in DB with "pending" status
         console.error('Stripe integration error (claim still succeeded):', stripeError)
       }
-    } else if (selectedPlan === 'pro' && !process.env.STRIPE_SECRET_KEY) {
+    } else if ((selectedPlan === 'pro' || selectedPlan === 'business') && !process.env.STRIPE_SECRET_KEY) {
       console.warn('Stripe not configured - Pro plan subscription created in DB only (no Stripe)')
     }
 
-    // TODO: Send confirmation email via Resend
-    // This will be implemented when Resend is set up
-    // await sendClaimConfirmationEmail(email, ownerName, restaurantName, selectedPlan)
+    // Send welcome email (only for Free plan, Pro/Business will get email after checkout)
+    if (selectedPlan === 'free') {
+      try {
+        await sendWelcomeEmail(email, ownerName, restaurantName, selectedPlan)
+      } catch (emailError) {
+        // Don't fail the claim if email fails
+        console.error('Error sending welcome email:', emailError)
+      }
+    }
 
     return NextResponse.json({
       success: true,
       userId,
       restaurantId: restaurantIdToLink,
       plan: selectedPlan,
-      message: selectedPlan === 'pro' 
-        ? 'Your restaurant has been claimed and your 14-day Pro trial has started!'
-        : 'Your restaurant has been claimed successfully!'
+      requiresPayment: false,
+      message: 'Your restaurant has been claimed successfully!'
     })
   } catch (error) {
     console.error('Claim submission error:', error)

@@ -42,11 +42,20 @@ export async function generateMetadata({
             description,
             type: 'website',
             url: `${baseUrl}/r/${restaurant.country_code}/${restaurant.restaurant_number}`,
+            images: [
+              {
+                url: 'https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png',
+                width: 1200,
+                height: 630,
+                alt: restaurant.name,
+              },
+            ],
           },
           twitter: {
-            card: 'summary',
+            card: 'summary_large_image',
             title: restaurant.name,
             description,
+            images: ['https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png'],
           },
         }
       }

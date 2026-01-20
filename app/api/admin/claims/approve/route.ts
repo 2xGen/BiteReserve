@@ -94,9 +94,22 @@ export async function POST(request: NextRequest) {
           })
           .eq('id', subscription.id)
 
-        // Also update Stripe subscription trial period if needed
-        // Note: Stripe trial may have already started, but we'll extend it if needed
-        // For now, we'll just update our DB - Stripe will sync on next webhook
+        // Update Stripe subscription trial period to start from approval date
+        // This ensures the 14-day trial starts when restaurant is approved, not when payment was made
+        if (subscription.stripe_subscription_id) {
+          try {
+            const { stripe } = await import('@/lib/stripe')
+            if (stripe) {
+              // Update Stripe subscription to set trial end to 14 days from now
+              await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+                trial_end: Math.floor(trialEndDate.getTime() / 1000), // Convert to Unix timestamp
+              })
+            }
+          } catch (stripeError) {
+            // Don't fail approval if Stripe update fails - DB is already updated
+            console.error('Error updating Stripe subscription trial period:', stripeError)
+          }
+        }
         
         // Send approval email with trial start notification
         if (restaurant.users?.email && restaurant.users?.name) {

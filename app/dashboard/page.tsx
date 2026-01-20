@@ -461,7 +461,7 @@ function DashboardContent() {
 
               {/* Approved Restaurants Dashboard */}
               {approvedRestaurants.length > 0 && selectedRestaurant && currentRestaurant ? (
-                <div>
+                <div key="approved-dashboard">
                   {/* Restaurant Header */}
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
                     <div className="flex items-start justify-between">
@@ -827,9 +827,8 @@ function DashboardContent() {
                     </div>
                   )}
                 </div>
+              </div>
                 </div>
-              </div>
-              </div>
               ) : approvedRestaurants.length === 0 ? (
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 sm:p-12 text-center">
                   <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -843,6 +842,8 @@ function DashboardContent() {
                   </p>
                 </div>
               ) : null}
+            </>
+          )}
         </div>
       </main>
       <Footer />

@@ -43,7 +43,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Customer Portal session
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    // Get base URL from environment variable, request origin, or default to production
+    let baseUrl = process.env.NEXT_PUBLIC_SITE_URL
+    if (!baseUrl) {
+      const origin = request.headers.get('origin')
+      const host = request.headers.get('host')
+      if (origin) {
+        baseUrl = origin
+      } else if (host) {
+        // Use https for production, http for localhost
+        baseUrl = host.includes('localhost') ? `http://${host}` : `https://${host}`
+      } else {
+        // Fallback to production URL
+        baseUrl = 'https://bitereserve.com'
+      }
+    }
     const returnUrl = `${baseUrl}/dashboard/subscription`
 
     const session = await createCustomerPortalSession(

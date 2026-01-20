@@ -14,6 +14,7 @@ export const resend = resendApiKey ? new Resend(resendApiKey) : null
 // For production: Update to your verified domain (e.g., hello@bitereserve.com)
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'BiteReserve <onboarding@resend.dev>'
 const REPLY_TO = process.env.RESEND_REPLY_TO || 'onboarding@resend.dev'
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'matthijs@2xgen.com'
 
 /**
  * Send welcome email to new users

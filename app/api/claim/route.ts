@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { getOrCreateStripeCustomer, createCheckoutSession } from '@/lib/stripe'
-import { sendWelcomeEmail } from '@/lib/resend'
+import { sendWelcomeEmail, sendAdminNotification } from '@/lib/resend'
 
 export const runtime = 'edge'
 
@@ -388,6 +388,26 @@ export async function POST(request: NextRequest) {
         // Don't fail the claim if email fails
         console.error('Error sending welcome email:', emailError)
       }
+    }
+
+    // Send admin notification for restaurant claim
+    try {
+      await sendAdminNotification(
+        'New Restaurant Claim',
+        `A new restaurant has been claimed:\n\nRestaurant: ${restaurantName}\nOwner: ${ownerName}\nEmail: ${email}\nPlan: ${selectedPlan}\nStatus: Pending verification`,
+        {
+          restaurantName,
+          ownerName,
+          email,
+          plan: selectedPlan,
+          restaurantId: restaurantIdToLink,
+          userId,
+          timestamp: new Date().toISOString(),
+        }
+      )
+    } catch (adminEmailError) {
+      // Don't fail the claim if admin notification fails
+      console.error('Error sending admin notification:', adminEmailError)
     }
 
     return NextResponse.json({

@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
-import { sendTransactionEmail, sendWelcomeEmail } from '@/lib/resend'
+import { sendTransactionEmail, sendWelcomeEmail, sendAdminNotification } from '@/lib/resend'
 
 // Note: Webhooks need Node.js runtime for proper body parsing
 export const runtime = 'nodejs'
@@ -117,6 +117,48 @@ export async function POST(request: NextRequest) {
                 console.error('Error sending welcome email after checkout:', emailError)
               }
             }
+
+            // Send admin notification for new subscription
+            try {
+              const { data: userData } = await supabase
+                .from('users')
+                .select('name, email')
+                .eq('id', session.metadata.userId)
+                .single()
+              
+              const { data: restaurantData } = await supabase
+                .from('restaurants')
+                .select('name')
+                .eq('user_id', session.metadata.userId)
+                .eq('is_claimed', true)
+                .limit(1)
+                .single()
+              
+              const priceId = subscription.items.data[0]?.price?.id
+              const businessPriceIds = [
+                process.env.STRIPE_PRICE_ID_BUSINESS_MONTHLY,
+                process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL
+              ]
+              const plan = priceId && businessPriceIds.includes(priceId) ? 'business' : 'pro'
+              
+              await sendAdminNotification(
+                'New Subscription Created',
+                `A new subscription has been created:\n\nUser: ${userData?.name || 'N/A'} (${userData?.email || session.customer_email})\nRestaurant: ${restaurantData?.name || 'N/A'}\nPlan: ${plan}\nStatus: ${subscription.status}\nStripe Customer: ${subscription.customer}`,
+                {
+                  userId: session.metadata.userId,
+                  userEmail: userData?.email || session.customer_email,
+                  userName: userData?.name,
+                  restaurantName: restaurantData?.name,
+                  plan,
+                  subscriptionId: subscription.id,
+                  customerId: subscription.customer,
+                  status: subscription.status,
+                  timestamp: new Date().toISOString(),
+                }
+              )
+            } catch (adminEmailError) {
+              console.error('Error sending admin notification:', adminEmailError)
+            }
           }
         }
         break
@@ -126,12 +168,77 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription
         await handleSubscriptionUpdate(supabase, subscription)
+        
+        // Send admin notification for subscription update
+        try {
+          const { data: subData } = await supabase
+            .from('subscriptions')
+            .select('user_id, plan')
+            .eq('stripe_subscription_id', subscription.id)
+            .single()
+          
+          if (subData) {
+            const { data: userData } = await supabase
+              .from('users')
+              .select('name, email')
+              .eq('id', subData.user_id)
+              .single()
+            
+            await sendAdminNotification(
+              'Subscription Updated',
+              `A subscription has been updated:\n\nUser: ${userData?.name || 'N/A'} (${userData?.email || 'N/A'})\nPlan: ${subData.plan}\nNew Status: ${subscription.status}\nStripe Subscription: ${subscription.id}`,
+              {
+                userId: subData.user_id,
+                userEmail: userData?.email,
+                userName: userData?.name,
+                plan: subData.plan,
+                subscriptionId: subscription.id,
+                status: subscription.status,
+                timestamp: new Date().toISOString(),
+              }
+            )
+          }
+        } catch (adminEmailError) {
+          console.error('Error sending admin notification:', adminEmailError)
+        }
         break
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription
         await handleSubscriptionDeleted(supabase, subscription)
+        
+        // Send admin notification for subscription cancellation
+        try {
+          const { data: subData } = await supabase
+            .from('subscriptions')
+            .select('user_id, plan')
+            .eq('stripe_subscription_id', subscription.id)
+            .single()
+          
+          if (subData) {
+            const { data: userData } = await supabase
+              .from('users')
+              .select('name, email')
+              .eq('id', subData.user_id)
+              .single()
+            
+            await sendAdminNotification(
+              'Subscription Cancelled',
+              `A subscription has been cancelled:\n\nUser: ${userData?.name || 'N/A'} (${userData?.email || 'N/A'})\nPlan: ${subData.plan}\nStripe Subscription: ${subscription.id}`,
+              {
+                userId: subData.user_id,
+                userEmail: userData?.email,
+                userName: userData?.name,
+                plan: subData.plan,
+                subscriptionId: subscription.id,
+                timestamp: new Date().toISOString(),
+              }
+            )
+          }
+        } catch (adminEmailError) {
+          console.error('Error sending admin notification:', adminEmailError)
+        }
         break
       }
 
@@ -154,6 +261,40 @@ export async function POST(request: NextRequest) {
           
           // Send transaction confirmation email
           await handlePaymentSuccessEmail(supabase, invoice, subscription)
+          
+          // Send admin notification for successful payment
+          try {
+            const { data: subData } = await supabase
+              .from('subscriptions')
+              .select('user_id, plan')
+              .eq('stripe_subscription_id', subscriptionId)
+              .single()
+            
+            if (subData) {
+              const { data: userData } = await supabase
+                .from('users')
+                .select('name, email')
+                .eq('id', subData.user_id)
+                .single()
+              
+              await sendAdminNotification(
+                'Payment Received',
+                `A payment has been successfully processed:\n\nUser: ${userData?.name || 'N/A'} (${userData?.email || 'N/A'})\nPlan: ${subData.plan}\nAmount: ${(invoice.amount_paid / 100).toFixed(2)} ${invoice.currency.toUpperCase()}\nInvoice: ${invoice.id}`,
+                {
+                  userId: subData.user_id,
+                  userEmail: userData?.email,
+                  userName: userData?.name,
+                  plan: subData.plan,
+                  amount: `${(invoice.amount_paid / 100).toFixed(2)} ${invoice.currency.toUpperCase()}`,
+                  invoiceId: invoice.id,
+                  subscriptionId: subscriptionId,
+                  timestamp: new Date().toISOString(),
+                }
+              )
+            }
+          } catch (adminEmailError) {
+            console.error('Error sending admin notification:', adminEmailError)
+          }
         }
         break
       }

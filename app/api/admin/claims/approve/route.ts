@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { sendRestaurantApprovedEmail } from '@/lib/resend'
 
 export const runtime = 'edge'
 
@@ -96,11 +97,38 @@ export async function POST(request: NextRequest) {
         // Also update Stripe subscription trial period if needed
         // Note: Stripe trial may have already started, but we'll extend it if needed
         // For now, we'll just update our DB - Stripe will sync on next webhook
+        
+        // Send approval email with trial start notification
+        if (restaurant.users?.email && restaurant.users?.name) {
+          try {
+            await sendRestaurantApprovedEmail(
+              restaurant.users.email,
+              restaurant.users.name,
+              restaurant.name,
+              subscription.plan as 'free' | 'pro' | 'business'
+            )
+          } catch (emailError) {
+            console.error('Error sending approval email:', emailError)
+            // Don't fail the approval if email fails
+          }
+        }
+      } else {
+        // Free plan - just send approval email
+        if (restaurant.users?.email && restaurant.users?.name) {
+          try {
+            await sendRestaurantApprovedEmail(
+              restaurant.users.email,
+              restaurant.users.name,
+              restaurant.name,
+              'free'
+            )
+          } catch (emailError) {
+            console.error('Error sending approval email:', emailError)
+            // Don't fail the approval if email fails
+          }
+        }
       }
     }
-
-    // TODO: Send approval email to user (you mentioned you'll do this manually for MVP)
-    // For now, just return success
 
     return NextResponse.json({
       success: true,

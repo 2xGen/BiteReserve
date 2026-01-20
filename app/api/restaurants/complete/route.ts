@@ -20,11 +20,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const {
       restaurantId,
+      tagline,
       address,
       phone,
       website,
       cuisine,
+      features,
       description,
+      priceLevel,
+      hours,
+      googleBusinessProfile,
     } = body
 
     if (!restaurantId) {
@@ -36,11 +41,16 @@ export async function POST(request: NextRequest) {
 
     const updateData: any = {}
     
+    if (tagline !== undefined) updateData.tagline = tagline
     if (address !== undefined) updateData.address = address
     if (phone !== undefined) updateData.phone = phone
     if (website !== undefined) updateData.website = website
     if (cuisine !== undefined) updateData.cuisine = cuisine
+    if (features !== undefined) updateData.features = features
     if (description !== undefined) updateData.description = description
+    if (priceLevel !== undefined) updateData.price_level = priceLevel
+    if (hours !== undefined) updateData.hours = hours
+    if (googleBusinessProfile !== undefined) updateData.google_business_profile = googleBusinessProfile
 
     const { error } = await supabase
       .from('restaurants')

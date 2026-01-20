@@ -14,6 +14,13 @@ const cuisineOptions = [
   'Pizza', 'Bistro', 'Farm-to-Table', 'Fusion', 'Other'
 ]
 
+const featureOptions = [
+  'Outdoor Seating', 'Ocean View', 'Private Dining', 'Full Bar', 'Valet Parking',
+  'Live Music', 'WiFi', 'Pet Friendly', 'Wheelchair Accessible', 'Parking',
+  'Takeout', 'Delivery', 'Reservations', 'Happy Hour', 'Brunch', 'Late Night',
+  'Romantic', 'Family Friendly', 'Groups', 'Business Dining', 'Date Night'
+]
+
 function CompleteClaimContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -28,11 +35,24 @@ function CompleteClaimContent() {
   const [isComplete, setIsComplete] = useState(false)
 
   const [formData, setFormData] = useState({
+    tagline: '',
     address: '',
     phone: '',
     website: '',
     cuisineTypes: [] as string[],
+    features: [] as string[],
     description: '',
+    googleBusinessProfile: '',
+    priceLevel: '',
+    hours: {
+      monday: '',
+      tuesday: '',
+      wednesday: '',
+      thursday: '',
+      friday: '',
+      saturday: '',
+      sunday: '',
+    },
   })
 
   useEffect(() => {
@@ -52,13 +72,34 @@ function CompleteClaimContent() {
       
       // Pre-fill if data exists
       if (data.restaurant) {
+        // Handle hours - could be object or array
+        let hoursObj: Record<string, string> = {
+          monday: '',
+          tuesday: '',
+          wednesday: '',
+          thursday: '',
+          friday: '',
+          saturday: '',
+          sunday: '',
+        }
+        
+        if (data.restaurant.hours) {
+          if (typeof data.restaurant.hours === 'object' && !Array.isArray(data.restaurant.hours)) {
+            hoursObj = { ...hoursObj, ...data.restaurant.hours }
+          }
+        }
+        
         setFormData(prev => ({
           ...prev,
+          tagline: data.restaurant.tagline || '',
           address: data.restaurant.address || '',
           phone: data.restaurant.phone || '',
           website: data.restaurant.website || '',
           cuisineTypes: data.restaurant.cuisine || [],
+          features: data.restaurant.features || [],
           description: data.restaurant.description || '',
+          priceLevel: data.restaurant.price_level || '',
+          hours: hoursObj,
         }))
       }
     } catch (error) {
@@ -77,9 +118,28 @@ function CompleteClaimContent() {
     }))
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const toggleFeature = (feature: string) => {
+    setFormData(prev => ({
+      ...prev,
+      features: prev.features.includes(feature)
+        ? prev.features.filter(f => f !== feature)
+        : [...prev.features, feature]
+    }))
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleHoursChange = (day: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      hours: {
+        ...prev.hours,
+        [day]: value,
+      }
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,11 +153,16 @@ function CompleteClaimContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           restaurantId,
+          tagline: formData.tagline || null,
           address: formData.address || null,
           phone: formData.phone || null,
           website: formData.website || null,
           cuisine: formData.cuisineTypes.length > 0 ? formData.cuisineTypes : null,
+          features: formData.features.length > 0 ? formData.features : null,
           description: formData.description || null,
+          priceLevel: formData.priceLevel || null,
+          hours: formData.hours,
+          googleBusinessProfile: formData.googleBusinessProfile || null,
         }),
       })
 
@@ -219,6 +284,25 @@ function CompleteClaimContent() {
                   </div>
                 )}
 
+                {/* Tagline */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Tagline <span className="text-gray-500 font-normal">(Short description)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="tagline"
+                    value={formData.tagline}
+                    onChange={handleChange}
+                    placeholder="e.g., Authentic Italian Coastal Cuisine"
+                    maxLength={100}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    A short, catchy phrase that appears below your restaurant name on the listing page.
+                  </p>
+                </div>
+
                 {/* Address */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -264,6 +348,57 @@ function CompleteClaimContent() {
                   />
                 </div>
 
+                {/* Price Level */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    Price Level
+                  </label>
+                  <select
+                    name="priceLevel"
+                    value={formData.priceLevel}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors bg-white"
+                  >
+                    <option value="">Select price level</option>
+                    <option value="$">$ - Budget Friendly</option>
+                    <option value="$$">$$ - Moderate</option>
+                    <option value="$$$">$$$ - Expensive</option>
+                    <option value="$$$$">$$$$ - Very Expensive</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    This helps diners understand your price range.
+                  </p>
+                </div>
+
+                {/* Opening Hours */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Opening Hours
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Enter your opening hours for each day. Use format like "5:00 PM – 10:00 PM" or "Closed" for closed days.
+                  </p>
+                  <div className="space-y-2">
+                    {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => (
+                      <div key={day} className="flex items-center gap-3">
+                        <label className="w-24 text-sm font-medium text-gray-700 capitalize">
+                          {day}:
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.hours[day as keyof typeof formData.hours]}
+                          onChange={(e) => handleHoursChange(day, e.target.value)}
+                          placeholder="e.g., 5:00 PM – 10:00 PM or Closed"
+                          className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Tip: For multiple time slots on the same day, use commas (e.g., "12:00 PM – 3:00 PM, 5:30 PM – 11:00 PM")
+                  </p>
+                </div>
+
                 {/* Cuisine Types */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -292,19 +427,90 @@ function CompleteClaimContent() {
                   )}
                 </div>
 
-                {/* Description */}
+                {/* Features */}
                 <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Features & Amenities
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Select features that apply to your restaurant. These will appear on your listing page.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {featureOptions.map((feature) => (
+                      <button
+                        key={feature}
+                        type="button"
+                        onClick={() => toggleFeature(feature)}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                          formData.features.includes(feature)
+                            ? 'bg-accent-500 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {feature}
+                      </button>
+                    ))}
+                  </div>
+                  {formData.features.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Selected: {formData.features.join(', ')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Verification Help */}
+                <div className="pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                    Verification Help (Optional)
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    To speed up verification, you can provide your Google Business Profile link. This helps us verify your restaurant quickly.
+                  </p>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Google Business Profile Link <span className="text-gray-500 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="url"
+                      name="googleBusinessProfile"
+                      value={formData.googleBusinessProfile}
+                      onChange={handleChange}
+                      placeholder="https://maps.google.com/your-restaurant"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      This helps us verify your restaurant faster. You can find it by searching for your restaurant on Google Maps.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                    Restaurant Description
+                  </h3>
+                  <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>📝 This description will appear on your public BiteReserve listing page.</strong> Write a compelling description that helps diners understand what makes your restaurant special.
+                    </p>
+                  </div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Description (Optional)
+                    Description <span className="text-gray-500 font-normal">(Optional, but recommended)</span>
                   </label>
                   <textarea
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
-                    rows={4}
-                    placeholder="Tell us about your restaurant..."
+                    rows={5}
+                    placeholder="Describe your restaurant's cuisine, atmosphere, specialties, and what makes it unique. This will be visible to potential diners on your BiteReserve page."
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors resize-none"
                   />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Tip: Include your signature dishes, ambiance, and what makes your restaurant special. This helps diners decide to visit!
+                  </p>
                 </div>
 
                 {/* Submit Button */}

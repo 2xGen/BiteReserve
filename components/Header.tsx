@@ -32,7 +32,7 @@ export default function Header() {
               ) : (
                 <Link 
                   href="/login" 
-                  className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors"
+                  className="text-sm font-semibold text-accent-600 hover:text-accent-700 transition-colors"
                 >
                   Sign In
                 </Link>
@@ -83,7 +83,7 @@ export default function Header() {
                   ) : (
                     <Link 
                       href="/login" 
-                      className="mx-4 my-2 flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold rounded-xl transition-colors"
+                      className="mx-4 my-2 flex items-center justify-center gap-2 px-4 py-3 bg-accent-600 hover:bg-accent-700 text-white font-bold rounded-xl transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Sign In

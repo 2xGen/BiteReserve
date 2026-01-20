@@ -47,6 +47,16 @@ export default function SignUpPage() {
       setError(signUpError.message)
       setLoading(false)
     } else {
+      // Send welcome email (don't wait for it, just fire and forget)
+      fetch('/api/emails/account-welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          name: formData.fullName || 'there',
+        }),
+      }).catch(err => console.error('Error sending welcome email:', err))
+      
       // Success - redirect directly to dashboard (no email verification needed)
       router.push('/dashboard')
     }

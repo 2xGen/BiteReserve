@@ -3,6 +3,7 @@
 // Force dynamic rendering to avoid build-time Supabase client issues
 export const dynamic = 'force-dynamic'
 
+import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -238,22 +239,27 @@ function DashboardContent() {
   }
 
   const handleCopyLink = (url: string) => {
-    const fullUrl = `https://bite.reserve/${url}`
+    const fullUrl = 'https://bite.reserve/' + url
     navigator.clipboard.writeText(fullUrl)
     setCopiedId(url)
     setTimeout(() => setCopiedId(null), 2000)
   }
 
-  const currentRestaurant = restaurants.find(r => r.id === selectedRestaurant)
-  const restaurantUrl = currentRestaurant?.country_code && currentRestaurant?.restaurant_number 
-    ? `/r/${currentRestaurant.country_code}/${currentRestaurant.restaurant_number}`
-    : currentRestaurant ? `/restaurant/${currentRestaurant.slug}` : null
+  const currentRestaurant = restaurants.find((r) => r.id === selectedRestaurant)
+  
+  let restaurantUrl: string | null = null
+  if (currentRestaurant?.country_code && currentRestaurant?.restaurant_number) {
+    restaurantUrl = `/r/${currentRestaurant.country_code}/${currentRestaurant.restaurant_number}`
+  } else if (currentRestaurant) {
+    restaurantUrl = `/restaurant/${currentRestaurant.slug}`
+  }
 
   const canClaimMore = restaurantCount < maxRestaurants
 
-  const planName = subscription?.plan
-    ? subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)
-    : 'Free'
+  let planName = 'Free'
+  if (subscription?.plan) {
+    planName = subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
@@ -271,7 +277,7 @@ function DashboardContent() {
                   </p>
                   {subscription && (
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      subscription.plan === 'free' 
+                      subscription.plan === 'free'
                         ? 'bg-gray-100 text-gray-700'
                         : subscription.plan === 'pro'
                         ? 'bg-accent-100 text-accent-700'

@@ -59,8 +59,9 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error updating restaurant:', error)
+      console.error('Update data:', JSON.stringify(updateData, null, 2))
       return NextResponse.json(
-        { error: 'Failed to update restaurant details' },
+        { error: `Failed to update restaurant details: ${error.message || 'Unknown error'}` },
         { status: 500 }
       )
     }

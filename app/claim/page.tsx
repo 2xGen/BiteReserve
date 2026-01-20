@@ -45,6 +45,8 @@ function ClaimPageContent() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [existingSubscription, setExistingSubscription] = useState<any>(null)
+  const [loadingSubscription, setLoadingSubscription] = useState(true)
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('')
@@ -74,6 +76,37 @@ function ClaimPageContent() {
       }))
     }
   }, [user])
+
+  // Fetch existing subscription to auto-select plan
+  useEffect(() => {
+    if (user?.id) {
+      fetchSubscription()
+    } else {
+      setLoadingSubscription(false)
+    }
+  }, [user])
+
+  const fetchSubscription = async () => {
+    if (!user?.id) return
+    
+    try {
+      const response = await fetch(`/api/stripe/subscription-status?userId=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data && (data.plan === 'pro' || data.plan === 'business')) {
+          // User has paid subscription - auto-select their plan
+          setExistingSubscription(data)
+          setSelectedPlan(data.plan as 'pro' | 'business')
+          // Determine billing cycle from subscription if possible
+          // For now, default to monthly
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching subscription:', error)
+    } finally {
+      setLoadingSubscription(false)
+    }
+  }
 
   // Define functions before useEffect hooks that use them
   // Lookup specific restaurant by country/id
@@ -940,7 +973,9 @@ function ClaimPageContent() {
                       </>
                     ) : (
                       <>
-                        {selectedPlan === 'free'
+                        {existingSubscription
+                          ? `Add Restaurant to My ${existingSubscription.plan === 'pro' ? 'Pro' : 'Business'} Plan`
+                          : selectedPlan === 'free'
                           ? 'Claim My Restaurant — Free'
                           : selectedPlan === 'pro'
                           ? `Start My 14-Day Pro Trial${billingCycle === 'annual' ? ' (Annual)' : ''}`

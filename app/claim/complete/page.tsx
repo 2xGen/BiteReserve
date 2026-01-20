@@ -73,7 +73,7 @@ function CompleteClaimContent() {
       // Pre-fill if data exists
       if (data.restaurant) {
         // Handle hours - could be object or array
-        let hoursObj: Record<string, string> = {
+        let hoursObj: { monday: string; tuesday: string; wednesday: string; thursday: string; friday: string; saturday: string; sunday: string } = {
           monday: '',
           tuesday: '',
           wednesday: '',
@@ -85,7 +85,7 @@ function CompleteClaimContent() {
         
         if (data.restaurant.hours) {
           if (typeof data.restaurant.hours === 'object' && !Array.isArray(data.restaurant.hours)) {
-            hoursObj = { ...hoursObj, ...data.restaurant.hours }
+            hoursObj = { ...hoursObj, ...data.restaurant.hours } as typeof hoursObj
           }
         }
         

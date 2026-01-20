@@ -10,9 +10,6 @@ import Footer from '@/components/Footer'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
-// Force dynamic rendering to avoid build-time Supabase client issues
-export const dynamic = 'force-dynamic'
-
 interface Restaurant {
   id: string
   slug: string
@@ -115,11 +112,12 @@ function DashboardContent() {
   }, [user])
 
   // Calculate restaurant limits and separate by status
-  const maxRestaurants = subscription?.plan === 'pro' 
-    ? 3 
-    : subscription?.plan === 'business' 
-    ? 15 
-    : 1
+  const maxRestaurants = React.useMemo(() => {
+    if (subscription?.plan === 'pro') return 3
+    if (subscription?.plan === 'business') return 15
+    return 1
+  }, [subscription?.plan])
+  
   const restaurantCount = restaurants.length
   const approvedRestaurants = restaurants.filter((r) => r.claim_status === 'approved' || (r.is_claimed && !r.claim_status))
   const pendingRestaurants = restaurants.filter((r) => r.claim_status === 'pending')
@@ -247,19 +245,24 @@ function DashboardContent() {
 
   const currentRestaurant = restaurants.find((r) => r.id === selectedRestaurant)
   
-  let restaurantUrl: string | null = null
-  if (currentRestaurant?.country_code && currentRestaurant?.restaurant_number) {
-    restaurantUrl = `/r/${currentRestaurant.country_code}/${currentRestaurant.restaurant_number}`
-  } else if (currentRestaurant) {
-    restaurantUrl = `/restaurant/${currentRestaurant.slug}`
-  }
+  const restaurantUrl = React.useMemo(() => {
+    if (currentRestaurant?.country_code && currentRestaurant?.restaurant_number) {
+      return `/r/${currentRestaurant.country_code}/${currentRestaurant.restaurant_number}`
+    }
+    if (currentRestaurant) {
+      return `/restaurant/${currentRestaurant.slug}`
+    }
+    return null
+  }, [currentRestaurant])
 
   const canClaimMore = restaurantCount < maxRestaurants
 
-  let planName = 'Free'
-  if (subscription?.plan) {
-    planName = subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)
-  }
+  const planName = React.useMemo(() => {
+    if (subscription?.plan) {
+      return subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)
+    }
+    return 'Free'
+  }, [subscription?.plan])
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
@@ -466,7 +469,7 @@ function DashboardContent() {
 
               {/* Approved Restaurants Dashboard */}
               {approvedRestaurants.length > 0 && selectedRestaurant && currentRestaurant ? (
-                <>
+                <div>
                   {/* Restaurant Header */}
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
                     <div className="flex items-start justify-between">
@@ -833,7 +836,7 @@ function DashboardContent() {
                   )}
                 </div>
               </div>
-                </>
+              </div>
               ) : approvedRestaurants.length === 0 ? (
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 sm:p-12 text-center">
                   <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -936,6 +939,8 @@ function DashboardContent() {
     </div>
   )
 }
+
+export const dynamic = 'force-dynamic'
 
 export default function DashboardPage() {
   return (

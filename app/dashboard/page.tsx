@@ -319,13 +319,13 @@ function DashboardContent() {
                 )}
                 {canClaimMore && (
                   <Link
-                    href="/claim"
+                    href={restaurants.length > 0 ? "/dashboard/add-restaurant" : "/claim"}
                     className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-accent-600 hover:bg-accent-700 text-white font-bold rounded-xl transition-colors shadow-lg hover:shadow-xl"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Claim Restaurant
+                    {restaurants.length > 0 ? "Add Restaurant" : "Claim Restaurant"}
                   </Link>
                 )}
                 <button
@@ -404,7 +404,7 @@ function DashboardContent() {
                     </div>
                     {canClaimMore && (
                       <Link
-                        href="/claim"
+                        href={restaurants.length > 0 ? "/dashboard/add-restaurant" : "/claim"}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-lg transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -119,45 +119,47 @@ export async function POST(request: NextRequest) {
             }
 
             // Send admin notification for new subscription
-            try {
-              const { data: userData } = await supabase
-                .from('users')
-                .select('name, email')
-                .eq('id', session.metadata.userId)
-                .single()
-              
-              const { data: restaurantData } = await supabase
-                .from('restaurants')
-                .select('name')
-                .eq('user_id', session.metadata.userId)
-                .eq('is_claimed', true)
-                .limit(1)
-                .single()
-              
-              const priceId = subscription.items.data[0]?.price?.id
-              const businessPriceIds = [
-                process.env.STRIPE_PRICE_ID_BUSINESS_MONTHLY,
-                process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL
-              ]
-              const plan = priceId && businessPriceIds.includes(priceId) ? 'business' : 'pro'
-              
-              await sendAdminNotification(
-                'New Subscription Created',
-                `A new subscription has been created:\n\nUser: ${userData?.name || 'N/A'} (${userData?.email || session.customer_email})\nRestaurant: ${restaurantData?.name || 'N/A'}\nPlan: ${plan}\nStatus: ${subscription.status}\nStripe Customer: ${subscription.customer}`,
-                {
-                  userId: session.metadata.userId,
-                  userEmail: userData?.email || session.customer_email,
-                  userName: userData?.name,
-                  restaurantName: restaurantData?.name,
-                  plan,
-                  subscriptionId: subscription.id,
-                  customerId: subscription.customer,
-                  status: subscription.status,
-                  timestamp: new Date().toISOString(),
-                }
-              )
-            } catch (adminEmailError) {
-              console.error('Error sending admin notification:', adminEmailError)
+            if (session.metadata?.userId) {
+              try {
+                const { data: userData } = await supabase
+                  .from('users')
+                  .select('name, email')
+                  .eq('id', session.metadata.userId)
+                  .single()
+                
+                const { data: restaurantData } = await supabase
+                  .from('restaurants')
+                  .select('name')
+                  .eq('user_id', session.metadata.userId)
+                  .eq('is_claimed', true)
+                  .limit(1)
+                  .single()
+                
+                const priceId = subscription.items.data[0]?.price?.id
+                const businessPriceIds = [
+                  process.env.STRIPE_PRICE_ID_BUSINESS_MONTHLY,
+                  process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL
+                ]
+                const plan = priceId && businessPriceIds.includes(priceId) ? 'business' : 'pro'
+                
+                await sendAdminNotification(
+                  'New Subscription Created',
+                  `A new subscription has been created:\n\nUser: ${userData?.name || 'N/A'} (${userData?.email || session.customer_email})\nRestaurant: ${restaurantData?.name || 'N/A'}\nPlan: ${plan}\nStatus: ${subscription.status}\nStripe Customer: ${subscription.customer}`,
+                  {
+                    userId: session.metadata.userId,
+                    userEmail: userData?.email || session.customer_email,
+                    userName: userData?.name,
+                    restaurantName: restaurantData?.name,
+                    plan,
+                    subscriptionId: subscription.id,
+                    customerId: subscription.customer,
+                    status: subscription.status,
+                    timestamp: new Date().toISOString(),
+                  }
+                )
+              } catch (adminEmailError) {
+                console.error('Error sending admin notification:', adminEmailError)
+              }
             }
           }
         }

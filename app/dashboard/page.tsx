@@ -114,11 +114,16 @@ function DashboardContent() {
   }, [user])
 
   // Calculate restaurant limits and separate by status
-  const maxRestaurants = subscription?.plan === 'pro' ? 3 : (subscription?.plan === 'business' ? 15 : 1)
+  let maxRestaurants = 1
+  if (subscription?.plan === 'pro') {
+    maxRestaurants = 3
+  } else if (subscription?.plan === 'business') {
+    maxRestaurants = 15
+  }
   const restaurantCount = restaurants.length
   const approvedRestaurants = restaurants.filter((r) => r.claim_status === 'approved' || (r.is_claimed && !r.claim_status))
-  const pendingRestaurants = restaurants.filter(r => r.claim_status === 'pending')
-  const rejectedRestaurants = restaurants.filter(r => r.claim_status === 'rejected')
+  const pendingRestaurants = restaurants.filter((r) => r.claim_status === 'pending')
+  const rejectedRestaurants = restaurants.filter((r) => r.claim_status === 'rejected')
 
   useEffect(() => {
     if (approvedRestaurants.length > 0) {

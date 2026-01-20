@@ -66,28 +66,12 @@ function ClaimPageContent() {
     }
   }, [canceled])
 
-  // Pre-fill email and name from logged-in user (required)
-  useEffect(() => {
-    if (user && user.email) {
-      setFormData(prev => ({ 
-        ...prev, 
-        email: user.email || '',
-        ownerName: prev.ownerName || (user.user_metadata?.name || '')
-      }))
-    }
-  }, [user])
-
   // Fetch existing subscription to auto-select plan
-  useEffect(() => {
-    if (user?.id) {
-      fetchSubscription()
-    } else {
-      setLoadingSubscription(false)
-    }
-  }, [user])
-
   const fetchSubscription = async () => {
-    if (!user?.id) return
+    if (!user?.id) {
+      setLoadingSubscription(false)
+      return
+    }
     
     try {
       const response = await fetch(`/api/stripe/subscription-status?userId=${user.id}`)
@@ -107,6 +91,26 @@ function ClaimPageContent() {
       setLoadingSubscription(false)
     }
   }
+
+  // Pre-fill email and name from logged-in user (required)
+  useEffect(() => {
+    if (user && user.email) {
+      setFormData(prev => ({ 
+        ...prev, 
+        email: user.email || '',
+        ownerName: prev.ownerName || (user.user_metadata?.name || '')
+      }))
+    }
+  }, [user])
+
+  // Fetch existing subscription to auto-select plan
+  useEffect(() => {
+    if (user?.id) {
+      fetchSubscription()
+    } else {
+      setLoadingSubscription(false)
+    }
+  }, [user])
 
   // Define functions before useEffect hooks that use them
   // Lookup specific restaurant by country/id
@@ -305,8 +309,6 @@ function ClaimPageContent() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
-
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -697,29 +699,50 @@ function ClaimPageContent() {
                 <hr className="border-gray-100" />
 
                 {/* Plan Selection */}
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="w-8 h-8 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                    Choose Your Plan
-                  </h2>
-                  
-                  {/* Trial Notice for Pro/Business */}
-                  {(selectedPlan === 'pro' || selectedPlan === 'business') && (
-                    <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-6">
+                {existingSubscription ? (
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <span className="w-8 h-8 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                      Plan Selection
+                    </h2>
+                    <div className="bg-green-50 border-l-4 border-green-400 rounded-lg p-4 mb-6">
                       <div className="flex items-start gap-3">
-                        <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <div>
-                          <p className="text-sm font-semibold text-blue-900 mb-1">14-Day Trial Starts After Verification</p>
-                          <p className="text-sm text-blue-800">
-                            Your 14-day trial will begin once your restaurant is verified (usually within 24 hours). This ensures you get the full trial period to use all features.
+                          <p className="text-sm font-semibold text-green-900 mb-1">Using Your Existing {existingSubscription.plan === 'pro' ? 'Pro' : 'Business'} Plan</p>
+                          <p className="text-sm text-green-800">
+                            You already have an active {existingSubscription.plan === 'pro' ? 'Pro' : 'Business'} subscription. This restaurant will be added to your account without additional charges.
                           </p>
                         </div>
                       </div>
                     </div>
-                  )}
-                  <div className="grid md:grid-cols-2 gap-4">
+                  </div>
+                ) : (
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <span className="w-8 h-8 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                      Choose Your Plan
+                    </h2>
+                    
+                    {/* Trial Notice for Pro/Business */}
+                    {(selectedPlan === 'pro' || selectedPlan === 'business') && (
+                      <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-6">
+                        <div className="flex items-start gap-3">
+                          <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div>
+                            <p className="text-sm font-semibold text-blue-900 mb-1">14-Day Trial Starts After Verification</p>
+                            <p className="text-sm text-blue-800">
+                              Your 14-day trial will begin once your restaurant is verified (usually within 24 hours). This ensures you get the full trial period to use all features.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid md:grid-cols-2 gap-4">
                     {/* Free Plan */}
                     <button
                       type="button"
@@ -954,6 +977,8 @@ function ClaimPageContent() {
                       </div>
                     </button>
                   </div>
+                  </div>
+                )}
                 </div>
 
                 {/* Submit */}

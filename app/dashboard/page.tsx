@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
@@ -112,11 +111,9 @@ function DashboardContent() {
   }, [user])
 
   // Calculate restaurant limits and separate by status
-  const maxRestaurants = React.useMemo(() => {
-    if (subscription?.plan === 'pro') return 3
-    if (subscription?.plan === 'business') return 15
-    return 1
-  }, [subscription?.plan])
+  let maxRestaurants = 1
+  if (subscription?.plan === 'pro') maxRestaurants = 3
+  else if (subscription?.plan === 'business') maxRestaurants = 15
   
   const restaurantCount = restaurants.length
   const approvedRestaurants = restaurants.filter((r) => r.claim_status === 'approved' || (r.is_claimed && !r.claim_status))
@@ -245,24 +242,19 @@ function DashboardContent() {
 
   const currentRestaurant = restaurants.find((r) => r.id === selectedRestaurant)
   
-  const restaurantUrl = React.useMemo(() => {
-    if (currentRestaurant?.country_code && currentRestaurant?.restaurant_number) {
-      return `/r/${currentRestaurant.country_code}/${currentRestaurant.restaurant_number}`
-    }
-    if (currentRestaurant) {
-      return `/restaurant/${currentRestaurant.slug}`
-    }
-    return null
-  }, [currentRestaurant])
+  let restaurantUrl: string | null = null
+  if (currentRestaurant?.country_code && currentRestaurant?.restaurant_number) {
+    restaurantUrl = `/r/${currentRestaurant.country_code}/${currentRestaurant.restaurant_number}`
+  } else if (currentRestaurant) {
+    restaurantUrl = `/restaurant/${currentRestaurant.slug}`
+  }
 
   const canClaimMore = restaurantCount < maxRestaurants
 
-  const planName = React.useMemo(() => {
-    if (subscription?.plan) {
-      return subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)
-    }
-    return 'Free'
-  }, [subscription?.plan])
+  let planName = 'Free'
+  if (subscription?.plan) {
+    planName = subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
@@ -834,6 +826,7 @@ function DashboardContent() {
                       </button>
                     </div>
                   )}
+                </div>
                 </div>
               </div>
               </div>

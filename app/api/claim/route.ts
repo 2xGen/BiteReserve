@@ -26,7 +26,6 @@ export async function POST(request: NextRequest) {
       // User info (user must be authenticated)
       email,
       ownerName,
-      phone,
       userId: providedUserId, // User ID from authenticated session
       // Restaurant info
       restaurantId, // If claiming existing restaurant

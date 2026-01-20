@@ -289,7 +289,6 @@ function ClaimPageContent() {
           // User info (use logged-in user's data)
           email: user?.email || formData.email, // Use logged-in user's email
           ownerName: formData.ownerName,
-          phone: formData.phone,
           userId: user?.id, // Pass logged-in user's ID
           // Restaurant info
           restaurantId: selectedRestaurant?.id || null, // If claiming existing restaurant

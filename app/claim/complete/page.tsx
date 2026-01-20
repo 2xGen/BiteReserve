@@ -45,7 +45,7 @@ function CompleteClaimContent() {
 
   const fetchRestaurant = async () => {
     try {
-      const response = await fetch(`/api/restaurants/${restaurantId}`)
+      const response = await fetch(`/api/restaurants/by-id/${restaurantId}`)
       if (!response.ok) throw new Error('Failed to fetch restaurant')
       const data = await response.json()
       setRestaurant(data.restaurant)

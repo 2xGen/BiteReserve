@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       if (subscription?.stripe_customer_id) {
         customerIdToUse = subscription.stripe_customer_id
         const subscriptions = await stripe.subscriptions.list({
-          customer: customerIdToUse,
+          customer: customerIdToUse || undefined,
           limit: 1,
           status: 'all',
         })

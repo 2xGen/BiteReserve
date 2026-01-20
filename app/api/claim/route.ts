@@ -219,15 +219,32 @@ export async function POST(request: NextRequest) {
 
     // Check if user already has an active Pro/Business subscription
     // If so, they can add restaurants without going through checkout again
-    const { data: existingSubscription } = await supabase
+    const { data: existingSubscriptions, error: subscriptionError } = await supabase
       .from('subscriptions')
       .select('id, plan, status, stripe_subscription_id')
       .eq('user_id', userId)
-      .single()
+      .order('created_at', { ascending: false })
+    
+    if (subscriptionError) {
+      console.error('Error fetching existing subscription:', subscriptionError)
+    }
+    
+    // Get the most recent subscription
+    const existingSubscription = existingSubscriptions && existingSubscriptions.length > 0 
+      ? existingSubscriptions[0] 
+      : null
     
     const hasActivePaidSubscription = existingSubscription && 
       (existingSubscription.plan === 'pro' || existingSubscription.plan === 'business') &&
       (existingSubscription.status === 'active' || existingSubscription.status === 'trialing')
+    
+    console.log('Subscription check:', {
+      userId,
+      hasSubscription: !!existingSubscription,
+      plan: existingSubscription?.plan,
+      status: existingSubscription?.status,
+      hasActivePaidSubscription
+    })
 
     // If user already has an active paid subscription, keep their existing plan
     // Otherwise, create/update subscription based on selected plan

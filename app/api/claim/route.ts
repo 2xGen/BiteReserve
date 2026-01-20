@@ -217,26 +217,39 @@ export async function POST(request: NextRequest) {
       restaurantIdToLink = newRestaurant.id
     }
 
-    // Create or update subscription
+    // Check if user already has an active Pro/Business subscription
+    // If so, they can add restaurants without going through checkout again
     const { data: existingSubscription } = await supabase
       .from('subscriptions')
-      .select('id')
+      .select('id, plan, status, stripe_subscription_id')
       .eq('user_id', userId)
       .single()
+    
+    const hasActivePaidSubscription = existingSubscription && 
+      (existingSubscription.plan === 'pro' || existingSubscription.plan === 'business') &&
+      (existingSubscription.status === 'active' || existingSubscription.status === 'trialing')
 
-    // Determine initial status based on plan
-    // For Pro/Business: set to "pending" until restaurant is verified (trial starts after verification)
-    // For Free: set to "active" immediately
-    const initialStatus = (selectedPlan === 'pro' || selectedPlan === 'business') ? 'pending' : 'active'
-
+    // If user already has an active paid subscription, keep their existing plan
+    // Otherwise, create/update subscription based on selected plan
     let subscriptionData: any = {
       user_id: userId,
-      plan: selectedPlan === 'pro' ? 'pro' : selectedPlan === 'business' ? 'business' : 'free',
-      status: initialStatus
     }
+    
+    if (hasActivePaidSubscription) {
+      // User already has Pro/Business - keep their existing plan and status
+      // Just ensure the restaurant is linked
+      subscriptionData = null // Don't update subscription if they already have one
+    } else {
+      // Determine initial status based on plan
+      // For Pro/Business: set to "pending" until restaurant is verified (trial starts after verification)
+      // For Free: set to "active" immediately
+      const initialStatus = (selectedPlan === 'pro' || selectedPlan === 'business') ? 'pending' : 'active'
+      
+      subscriptionData.plan = selectedPlan === 'pro' ? 'pro' : selectedPlan === 'business' ? 'business' : 'free'
+      subscriptionData.status = initialStatus
 
-    // Set plan limits based on plan type
-    if (selectedPlan === 'business') {
+      // Set plan limits based on plan type
+      if (selectedPlan === 'business') {
       // Business plan: up to 15 restaurants, unlimited everything else, 365 days analytics
       subscriptionData.max_restaurants = 15
       subscriptionData.max_campaign_links = null // Unlimited
@@ -266,34 +279,41 @@ export async function POST(request: NextRequest) {
       subscriptionData.analytics_retention_days = 14
       subscriptionData.remove_branding = false
       subscriptionData.weekly_email_reports = false
+      }
     }
 
-    if (existingSubscription) {
-      // Update existing subscription
-      const { error: subError } = await supabase
-        .from('subscriptions')
-        .update(subscriptionData)
-        .eq('id', existingSubscription.id)
+    // Only create/update subscription if user doesn't already have an active paid subscription
+    if (!hasActivePaidSubscription && subscriptionData) {
+      if (existingSubscription) {
+        // Update existing subscription
+        const { error: subError } = await supabase
+          .from('subscriptions')
+          .update(subscriptionData)
+          .eq('id', existingSubscription.id)
 
-      if (subError) {
-        console.error('Subscription update error:', subError)
-        // Don't fail the claim if subscription update fails
-      }
-    } else {
-      // Create new subscription
-      const { error: subError } = await supabase
-        .from('subscriptions')
-        .insert(subscriptionData)
+        if (subError) {
+          console.error('Subscription update error:', subError)
+          // Don't fail the claim if subscription update fails
+        }
+      } else {
+        // Create new subscription
+        const { error: subError } = await supabase
+          .from('subscriptions')
+          .insert(subscriptionData)
 
-      if (subError) {
-        console.error('Subscription creation error:', subError)
-        // Don't fail the claim if subscription creation fails
+        if (subError) {
+          console.error('Subscription creation error:', subError)
+          // Don't fail the claim if subscription creation fails
+        }
       }
     }
 
     // Stripe Integration for Pro and Business plans
-    // For paid plans, create Stripe Checkout Session and redirect to payment
-    if ((selectedPlan === 'pro' || selectedPlan === 'business') && process.env.STRIPE_SECRET_KEY) {
+    // Skip Stripe checkout if user already has an active paid subscription
+    // They can add restaurants within their plan limits without paying again
+    if ((selectedPlan === 'pro' || selectedPlan === 'business') && 
+        !hasActivePaidSubscription && 
+        process.env.STRIPE_SECRET_KEY) {
       try {
         // Get Stripe price ID based on plan and billing cycle
         const isAnnual = billingCycle === 'annual'
@@ -347,15 +367,16 @@ export async function POST(request: NextRequest) {
 
           // Create Stripe Checkout Session (redirects to payment)
           // Subscription status remains "pending" until webhook confirms payment
-          // Set 30-day trial in Stripe to account for verification time
-          // Actual 14-day trial starts when restaurant is approved (handled in approve endpoint)
+          // Set 14-day trial in Stripe - trial starts when checkout completes
+          // However, we keep subscription as "pending" in DB until restaurant is approved
+          // When approved, we update subscription to "trialing" and set trial_ends_at to 14 days from approval
           const checkoutSession = await createCheckoutSession(
             customerId,
             priceId,
             userId,
             successUrl,
             cancelUrl,
-            30 // 30-day buffer in Stripe, actual 14-day trial starts after approval
+            14 // 14-day trial period
           )
 
           // Return checkout URL to redirect user to Stripe

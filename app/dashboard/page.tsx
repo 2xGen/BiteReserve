@@ -1,8 +1,5 @@
 'use client'
 
-// Force dynamic rendering to avoid build-time Supabase client issues
-export const dynamic = 'force-dynamic'
-
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -12,6 +9,9 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+
+// Force dynamic rendering to avoid build-time Supabase client issues
+export const dynamic = 'force-dynamic'
 
 interface Restaurant {
   id: string
@@ -128,7 +128,7 @@ function DashboardContent() {
   useEffect(() => {
     if (approvedRestaurants.length > 0) {
       // Auto-select first approved restaurant if none selected
-      if (!selectedRestaurant || !approvedRestaurants.find(r => r.id === selectedRestaurant)) {
+      if (!selectedRestaurant || !approvedRestaurants.find((r) => r.id === selectedRestaurant)) {
         setSelectedRestaurant(approvedRestaurants[0].id)
       }
     }

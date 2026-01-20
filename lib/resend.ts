@@ -77,13 +77,27 @@ export async function sendWelcomeEmail(
               </ul>
             </div>
             
-            <p style="font-size: 16px;">We'll review your submission and get your page live within 24 hours. You'll receive another email with your dashboard login details once everything is ready.</p>
+            <p style="font-size: 16px;">We'll manually verify your restaurant information within 24 hours by checking it against public data sources (primarily Google Business Profile).</p>
+            
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; margin: 20px 0; border-radius: 4px;">
+              <p style="margin: 0; color: #92400e; font-size: 14px; font-weight: 600;">📋 Verification Information Needed</p>
+              <p style="margin: 8px 0 0 0; color: #78350f; font-size: 14px;">If your restaurant isn't already in our database, we may need your <strong>Google Business Profile link</strong> to verify your information. If needed, we'll email you to request it.</p>
+            </div>
+            
+            <p style="font-size: 16px;">Once verified, you'll receive another email with your dashboard login details and your BiteReserve page will be activated.</p>
+            
+            ${plan !== 'free' ? `
+            <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 16px; margin: 20px 0; border-radius: 4px;">
+              <p style="margin: 0; color: #1e40af; font-size: 14px; font-weight: 600;">🎉 Thank you for starting your ${plan === 'pro' ? 'Pro' : 'Business'} trial!</p>
+              <p style="margin: 8px 0 0 0; color: #1e3a8a; font-size: 14px;">Your 14-day trial has started. After the trial, your subscription will continue at ${plan === 'pro' ? '$29/mo' : '$99/mo'} unless you cancel. You can manage your subscription anytime from your dashboard.</p>
+            </div>
+            ` : ''}
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="https://bitereserve.com/dashboard" style="display: inline-block; background: #10b981; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">View Dashboard</a>
             </div>
             
-            <p style="font-size: 14px; color: #6b7280; margin-top: 30px;">If you have any questions, just reply to this email. We're here to help!</p>
+            <p style="font-size: 14px; color: #6b7280; margin-top: 30px;">If you have any questions or need to provide additional information, just reply to this email. We're here to help!</p>
             
             <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">
               Best regards,<br>

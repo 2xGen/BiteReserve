@@ -213,8 +213,13 @@ async function handleSubscriptionUpdate(
     }
 
     // Map Stripe status to our status
+    // IMPORTANT: If subscription is "pending" in our DB, keep it pending until restaurant is verified
+    // Trial starts after verification, not after payment
     let status = 'active'
-    if (subscription.status === 'trialing') {
+    if (existingSub && existingSub.status === 'pending') {
+      // Keep as pending - trial will start when restaurant is approved
+      status = 'pending'
+    } else if (subscription.status === 'trialing') {
       status = 'trialing'
     } else if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
       status = 'past_due'
@@ -235,7 +240,9 @@ async function handleSubscriptionUpdate(
     if ('current_period_end' in subscription && typeof subscription.current_period_end === 'number') {
       updateData.current_period_end = new Date(subscription.current_period_end * 1000).toISOString()
     }
-    if ('trial_end' in subscription && typeof subscription.trial_end === 'number') {
+    // Only set trial_ends_at if subscription is not pending
+    // If pending, trial will start after restaurant verification
+    if (status !== 'pending' && 'trial_end' in subscription && typeof subscription.trial_end === 'number') {
       updateData.trial_ends_at = new Date(subscription.trial_end * 1000).toISOString()
     }
     if ('canceled_at' in subscription && typeof subscription.canceled_at === 'number') {

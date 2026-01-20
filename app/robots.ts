@@ -8,11 +8,22 @@ export default function robots(): MetadataRoute.Robots {
         allow: [
           '/',
           '/about',
-          '/restaurant/*',
+          '/claim',
+          '/privacy',
+          '/terms',
+          '/r/*', // Restaurant pages
         ],
         disallow: [
-          '/destinations',
-          '/api/*',
+          '/destinations', // Not meant for indexing
+          '/api/*', // API routes
+          '/dashboard/*', // User dashboard (private)
+          '/admin/*', // Admin pages (private)
+          '/login',
+          '/signup',
+          '/reset-password',
+          '/claim/complete', // Post-payment page (private)
+          '/claim/success', // Post-payment page (private)
+          '/signup/success', // Post-signup page (private)
         ],
       },
     ],

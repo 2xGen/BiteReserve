@@ -26,6 +26,11 @@ interface Restaurant {
   is_claimed: boolean
   country_code: string
   restaurant_number: string
+  reservation_form_enabled: boolean
+  reservation_email_verified: boolean
+  reservation_whatsapp_verified: boolean
+  reservation_min_advance_hours: number
+  reservation_delivery_method: string
 }
 
 export default function RestaurantPage() {
@@ -203,15 +208,55 @@ export default function RestaurantPage() {
     setSubmitStatus('idle')
 
     try {
-      // TODO: Send to API endpoint
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Get source and campaign from URL params
+      const urlParams = new URLSearchParams(window.location.search)
+      const source = urlParams.get('source') || urlParams.get('ref') || null
+      const campaign = urlParams.get('campaign') || urlParams.get('ref') || null
+
+      // Validate minimum advance time
+      const requestedDateTime = new Date(`${formData.date}T${formData.time}`)
+      const now = new Date()
+      const hoursInAdvance = (requestedDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
+      const minHours = restaurant.reservation_min_advance_hours || 24
+
+      if (hoursInAdvance < minHours) {
+        alert(`Reservations must be made at least ${minHours} hours in advance`)
+        setSubmitStatus('error')
+        setIsSubmitting(false)
+        return
+      }
+
+      const response = await fetch('/api/reservations/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurantId: restaurant.id,
+          date: formData.date,
+          time: formData.time,
+          partySize: formData.partySize,
+          guestName: formData.name,
+          guestEmail: formData.email,
+          guestPhone: formData.phone,
+          specialRequests: formData.specialRequests || null,
+          source,
+          campaign,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to submit reservation')
+      }
+
       trackEvent(restaurant.id, 'reservation_click')
       setSubmitStatus('success')
       setFormData({
         date: '', time: '', partySize: '', name: '', email: '', phone: '', specialRequests: '',
       })
-    } catch {
+    } catch (error) {
+      console.error('Reservation submission error:', error)
       setSubmitStatus('error')
+      alert(error instanceof Error ? error.message : 'Failed to submit reservation. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -501,8 +546,8 @@ export default function RestaurantPage() {
               </button>
             )}
 
-            {/* Reserve Button - Only show if claimed */}
-            {restaurant.is_claimed && (
+            {/* Reserve Button - Only show if reservation form is enabled */}
+            {restaurant.reservation_form_enabled && (
               <a
                 href="#reserve"
                 className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg sm:rounded-xl bg-accent-500 hover:bg-accent-600 text-white transition-all duration-300 active:scale-95 sm:hover:scale-105"
@@ -599,8 +644,8 @@ export default function RestaurantPage() {
           )}
         </div>
 
-        {/* Reservation Form Section - Only for claimed restaurants */}
-        {restaurant.is_claimed && (
+        {/* Reservation Form Section - Only if enabled */}
+        {restaurant.reservation_form_enabled && (
           <div id="reserve" className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-10">
             <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-8">
               <div className="w-10 h-10 sm:w-14 sm:h-14 bg-accent-100 rounded-lg sm:rounded-xl flex items-center justify-center">
@@ -637,9 +682,19 @@ export default function RestaurantPage() {
                       value={formData.date}
                       onChange={handleChange}
                       required
-                      min={new Date().toISOString().split('T')[0]}
+                      min={(() => {
+                        const minDate = new Date()
+                        const minHours = restaurant.reservation_min_advance_hours || 24
+                        minDate.setHours(minDate.getHours() + minHours)
+                        return minDate.toISOString().split('T')[0]
+                      })()}
                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
                     />
+                    {restaurant.reservation_min_advance_hours && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Book at least {restaurant.reservation_min_advance_hours === 24 ? '24 hours' : restaurant.reservation_min_advance_hours === 48 ? '48 hours' : restaurant.reservation_min_advance_hours === 72 ? '3 days' : '1 week'} in advance
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Time *</label>

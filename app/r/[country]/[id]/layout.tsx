@@ -69,6 +69,23 @@ export async function generateMetadata({
   return {
     title: 'Reserve Table | BiteReserve',
     description: 'Reserve your table online. Book restaurant reservations instantly.',
+    openGraph: {
+      title: 'Reserve Table | BiteReserve',
+      description: 'Reserve your table online. Book restaurant reservations instantly.',
+      type: 'website',
+      images: [
+        {
+          url: 'https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png',
+          width: 1200,
+          height: 630,
+          alt: 'BiteReserve',
+        },
+      ],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   }
 }
 

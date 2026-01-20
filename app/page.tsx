@@ -1,6 +1,36 @@
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'BiteReserve - Track Where Your Restaurant Bookings Come From',
+  description: 'Clicks don\'t pay bills — reservations do. Get your free BiteReserve page and start tracking where your guests come from. See which campaigns drive real bookings.',
+  keywords: 'restaurant analytics, booking tracking, reservation analytics, restaurant marketing, campaign tracking, restaurant demand tracking',
+  openGraph: {
+    title: 'BiteReserve - Track Where Your Restaurant Bookings Come From',
+    description: 'Clicks don\'t pay bills — reservations do. Get your free BiteReserve page and start tracking where your guests come from.',
+    type: 'website',
+    url: 'https://bitereserve.com',
+    images: [
+      {
+        url: 'https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png',
+        width: 1200,
+        height: 630,
+        alt: 'BiteReserve - Restaurant Booking Analytics',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BiteReserve - Track Where Your Restaurant Bookings Come From',
+    description: 'Clicks don\'t pay bills — reservations do. Get your free BiteReserve page and start tracking where your guests come from.',
+    images: ['https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png'],
+  },
+  alternates: {
+    canonical: 'https://bitereserve.com',
+  },
+}
 
 export default function Home() {
   return (

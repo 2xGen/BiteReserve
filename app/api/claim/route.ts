@@ -45,10 +45,10 @@ export async function POST(request: NextRequest) {
       notes
     } = body
 
-    // Validate required fields
+    // Validate required fields (minimal for initial claim)
     if (!email || !ownerName || !restaurantName || !city || !country) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: restaurant name, city, country, owner name, and email are required' },
         { status: 400 }
       )
     }
@@ -119,20 +119,15 @@ export async function POST(request: NextRequest) {
       }
 
       // Update restaurant with user info
+      // Set to pending status - requires manual review before approval
       const updateData: any = {
         user_id: userId,
-        is_claimed: true
+        is_claimed: false, // Will be set to true when approved
+        claim_status: 'pending' // Awaiting manual review
       }
 
-      // Update restaurant details if provided
+      // Update restaurant name (minimal data for now, full details come after payment)
       if (restaurantName) updateData.name = restaurantName
-      if (address) updateData.address = address
-      if (website) updateData.website = website
-      if (cuisineTypes && cuisineTypes.length > 0) updateData.cuisine = cuisineTypes
-      if (bookingPlatforms && bookingPlatforms.length > 0) {
-        // Store first booking platform
-        updateData.booking_platform = bookingPlatforms[0]
-      }
 
       const { error: updateError } = await supabase
         .from('restaurants')
@@ -202,14 +197,12 @@ export async function POST(request: NextRequest) {
           user_id: userId,
           slug,
           name: restaurantName,
-          address: address || null,
-          website: website || null,
-          cuisine: cuisineTypes && cuisineTypes.length > 0 ? cuisineTypes : null,
-          booking_platform: bookingPlatforms && bookingPlatforms.length > 0 ? bookingPlatforms[0] : null,
           country_code: countryCode,
           restaurant_number: restaurantNumber,
-          is_claimed: true,
-          is_active: true
+          is_claimed: false, // Will be set to true when approved
+          is_active: true,
+          claim_status: 'pending' // Awaiting manual review
+          // Address, website, cuisine, etc. will be added in completion form
         })
         .select('id')
         .single()
@@ -233,7 +226,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     // Determine initial status based on plan
-    // For Pro/Business: set to "pending" until Stripe webhook confirms payment
+    // For Pro/Business: set to "pending" until restaurant is verified (trial starts after verification)
     // For Free: set to "active" immediately
     const initialStatus = (selectedPlan === 'pro' || selectedPlan === 'business') ? 'pending' : 'active'
 
@@ -253,11 +246,8 @@ export async function POST(request: NextRequest) {
       subscriptionData.remove_branding = true
       subscriptionData.weekly_email_reports = true
       
-      // Set trial end date (14 days from now)
-      const trialEndDate = new Date()
-      trialEndDate.setDate(trialEndDate.getDate() + 14)
-      subscriptionData.trial_ends_at = trialEndDate.toISOString()
-      subscriptionData.current_period_end = trialEndDate.toISOString()
+      // Don't set trial_ends_at yet - trial starts after verification
+      // This will be set when the restaurant is approved
     } else if (selectedPlan === 'pro') {
       // Pro plan: up to 3 restaurants, unlimited actions, unlimited links, 90 days analytics
       subscriptionData.max_restaurants = 3
@@ -267,11 +257,8 @@ export async function POST(request: NextRequest) {
       subscriptionData.remove_branding = true
       subscriptionData.weekly_email_reports = true
       
-      // Set trial end date (14 days from now)
-      const trialEndDate = new Date()
-      trialEndDate.setDate(trialEndDate.getDate() + 14)
-      subscriptionData.trial_ends_at = trialEndDate.toISOString()
-      subscriptionData.current_period_end = trialEndDate.toISOString()
+      // Don't set trial_ends_at yet - trial starts after verification
+      // This will be set when the restaurant is approved
     } else {
       // Free plan: 25 actions, 3 links, 14 days analytics
       subscriptionData.max_restaurants = 1
@@ -356,18 +343,20 @@ export async function POST(request: NextRequest) {
               baseUrl = 'https://bitereserve.com'
             }
           }
-          const successUrl = `${baseUrl}/claim/success?session_id={CHECKOUT_SESSION_ID}&user_id=${userId}`
+          const successUrl = `${baseUrl}/claim/complete?session_id={CHECKOUT_SESSION_ID}&user_id=${userId}&restaurant_id=${restaurantIdToLink}`
           const cancelUrl = `${baseUrl}/claim?canceled=true`
 
           // Create Stripe Checkout Session (redirects to payment)
           // Subscription status remains "pending" until webhook confirms payment
+          // Set 30-day trial in Stripe to account for verification time
+          // Actual 14-day trial starts when restaurant is approved (handled in approve endpoint)
           const checkoutSession = await createCheckoutSession(
             customerId,
             priceId,
             userId,
             successUrl,
             cancelUrl,
-            14 // 14-day trial
+            30 // 30-day buffer in Stripe, actual 14-day trial starts after approval
           )
 
           // Return checkout URL to redirect user to Stripe

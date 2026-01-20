@@ -28,21 +28,6 @@ const cuisineOptions = [
   'Pizza', 'Bistro', 'Farm-to-Table', 'Fusion', 'Other'
 ]
 
-const bookingPlatformOptions = [
-  { value: 'website', label: 'Our own website' },
-  { value: 'opentable', label: 'OpenTable' },
-  { value: 'resy', label: 'Resy' },
-  { value: 'thefork', label: 'TheFork / LaFourchette' },
-  { value: 'bookatable', label: 'Bookatable' },
-  { value: 'quandoo', label: 'Quandoo' },
-  { value: 'whatsapp', label: 'WhatsApp' },
-  { value: 'phone', label: 'Phone only' },
-  { value: 'email', label: 'Email' },
-  { value: 'instagram', label: 'Instagram DM' },
-  { value: 'none', label: 'No online booking yet' },
-  { value: 'other', label: 'Other' }
-]
-
 function ClaimPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -53,15 +38,8 @@ function ClaimPageContent() {
     restaurantName: '',
     ownerName: '',
     email: '',
-    phone: '',
-    website: '',
-    address: '',
     city: '',
     country: '',
-    cuisineTypes: [] as string[],
-    bookingPlatforms: [] as string[],
-    howDidYouHear: '',
-    notes: ''
   })
   const [selectedPlan, setSelectedPlan] = useState<'free' | 'pro' | 'business'>('free')
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
@@ -127,11 +105,8 @@ function ClaimPageContent() {
     setFormData(prev => ({
       ...prev,
       restaurantName: restaurant.name || '',
-      address: restaurant.address || '',
       city: city,
       country: country || restaurant.country_code.toUpperCase(),
-      website: restaurant.website || '',
-      cuisineTypes: restaurant.cuisine || [],
     }))
     
     setShowSearchResults(false)
@@ -289,11 +264,8 @@ function ClaimPageContent() {
     setFormData(prev => ({
       ...prev,
       restaurantName: '',
-      address: '',
       city: '',
       country: '',
-      website: '',
-      cuisineTypes: [],
     }))
   }
 
@@ -301,23 +273,7 @@ function ClaimPageContent() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const toggleCuisine = (cuisine: string) => {
-    setFormData(prev => ({
-      ...prev,
-      cuisineTypes: prev.cuisineTypes.includes(cuisine)
-        ? prev.cuisineTypes.filter(c => c !== cuisine)
-        : [...prev.cuisineTypes, cuisine]
-    }))
-  }
 
-  const toggleBookingPlatform = (platform: string) => {
-    setFormData(prev => ({
-      ...prev,
-      bookingPlatforms: prev.bookingPlatforms.includes(platform)
-        ? prev.bookingPlatforms.filter(p => p !== platform)
-        : [...prev.bookingPlatforms, platform]
-    }))
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -338,18 +294,11 @@ function ClaimPageContent() {
           // Restaurant info
           restaurantId: selectedRestaurant?.id || null, // If claiming existing restaurant
           restaurantName: formData.restaurantName,
-          address: formData.address,
           city: formData.city,
           country: formData.country,
-          website: formData.website,
-          cuisineTypes: formData.cuisineTypes,
-          bookingPlatforms: formData.bookingPlatforms,
           // Plan selection
           selectedPlan,
           billingCycle: (selectedPlan === 'pro' || selectedPlan === 'business') ? billingCycle : undefined,
-          // Optional
-          howDidYouHear: formData.howDidYouHear,
-          notes: formData.notes
         }),
       })
 
@@ -386,10 +335,12 @@ function ClaimPageContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">You're on the list!</h1>
-            <p className="text-lg text-gray-600 mb-8">
-              We'll review your submission and get your BiteReserve page set up within 24 hours. 
-              You'll receive an email at <span className="font-semibold text-gray-900">{formData.email}</span> with your login details.
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Claim Submitted!</h1>
+            <p className="text-lg text-gray-600 mb-4">
+              We've received your restaurant claim request. Our team will manually verify your submission within 24 hours by checking your restaurant's information against public data sources (primarily Google Business Profile) to ensure URLs, booking links, and contact details match.
+            </p>
+            <p className="text-base text-gray-600 mb-8">
+              Once verified, you'll receive an email at <span className="font-semibold text-gray-900">{formData.email}</span> with your dashboard login details and your BiteReserve page will be activated.
             </p>
             
             {selectedPlan === 'pro' && (
@@ -406,13 +357,19 @@ function ClaimPageContent() {
                   <svg className="w-5 h-5 text-accent-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>We create your BiteReserve page</span>
+                  <span>We verify your restaurant information (within 24 hours)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <svg className="w-5 h-5 text-accent-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>You get your dashboard login</span>
+                  <span>Your BiteReserve page is activated</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-accent-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>You receive your dashboard login via email</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <svg className="w-5 h-5 text-accent-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -491,6 +448,21 @@ function ClaimPageContent() {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <span>Edit anytime</span>
+              </div>
+            </div>
+
+            {/* Verification Notice */}
+            <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-6 mb-6">
+              <div className="flex items-start gap-3">
+                <svg className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-base font-bold text-amber-900 mb-2">Manual Verification Required</h3>
+                  <p className="text-sm text-amber-800 leading-relaxed">
+                    After you submit your claim, we'll manually verify your request within 24 hours. We'll check your restaurant's information against public data sources (primarily Google Business Profile) to verify that URLs, booking links, and contact details match. Once verified, your BiteReserve page will be activated and you'll receive an email confirmation.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -638,60 +610,10 @@ function ClaimPageContent() {
                         />
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Full Address
-                      </label>
-                      <input
-                        type="text"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleChange}
-                        placeholder="Street address"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
-                      />
-                    </div>
-                    
-                    {/* Cuisine Types - Multi Select */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Cuisine Type(s)
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {cuisineOptions.map((cuisine) => (
-                          <button
-                            key={cuisine}
-                            type="button"
-                            onClick={() => toggleCuisine(cuisine)}
-                            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                              formData.cuisineTypes.includes(cuisine)
-                                ? 'bg-accent-500 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                          >
-                            {cuisine}
-                          </button>
-                        ))}
-                      </div>
-                      {formData.cuisineTypes.length > 0 && (
-                        <p className="text-xs text-gray-500 mt-2">
-                          Selected: {formData.cuisineTypes.join(', ')}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Website
-                      </label>
-                      <input
-                        type="url"
-                        name="website"
-                        value={formData.website}
-                        onChange={handleChange}
-                        placeholder="https://..."
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
-                      />
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>Note:</strong> You'll be able to add your full address, phone, website, and other details after completing your payment.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -719,107 +641,23 @@ function ClaimPageContent() {
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
                       />
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                          Email <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          placeholder="you@restaurant.com"
-                          disabled={!!user} // Disable if user is logged in (can't change email)
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
-                        />
-                        {user && (
-                          <p className="text-xs text-gray-500 mt-1">This email is linked to your account.</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                          Phone
-                        </label>
-                        <input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleChange}
-                          placeholder="+1 234 567 8900"
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <hr className="border-gray-100" />
-
-                {/* Optional Info */}
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="w-8 h-8 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                    A Few More Details
-                    <span className="text-sm font-normal text-gray-400 ml-2">(optional)</span>
-                  </h2>
-                  <div className="space-y-4">
-                    
-                    {/* Booking Platforms - Multi Select */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        How do guests currently book with you?
-                      </label>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {bookingPlatformOptions.map((platform) => (
-                          <button
-                            key={platform.value}
-                            type="button"
-                            onClick={() => toggleBookingPlatform(platform.value)}
-                            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all text-left ${
-                              formData.bookingPlatforms.includes(platform.value)
-                                ? 'bg-accent-500 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                          >
-                            {platform.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        How did you hear about us?
+                        Email <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        name="howDidYouHear"
-                        value={formData.howDidYouHear}
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors bg-white"
-                      >
-                        <option value="">Select one...</option>
-                        <option value="google">Google search</option>
-                        <option value="social">Social media</option>
-                        <option value="referral">Another restaurant</option>
-                        <option value="hotel">Hotel partner</option>
-                        <option value="2xgen">2xGen</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Anything else we should know?
-                      </label>
-                      <textarea
-                        name="notes"
-                        value={formData.notes}
-                        onChange={handleChange}
-                        rows={3}
-                        placeholder="Tell us about your restaurant, partners, or specific needs..."
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors resize-none"
+                        required
+                        placeholder="you@restaurant.com"
+                        disabled={!!user} // Disable if user is logged in (can't change email)
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
                       />
+                      {user && (
+                        <p className="text-xs text-gray-500 mt-1">This email is linked to your account.</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -829,9 +667,26 @@ function ClaimPageContent() {
                 {/* Plan Selection */}
                 <div>
                   <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="w-8 h-8 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                    <span className="w-8 h-8 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center text-sm font-bold">3</span>
                     Choose Your Plan
                   </h2>
+                  
+                  {/* Trial Notice for Pro/Business */}
+                  {(selectedPlan === 'pro' || selectedPlan === 'business') && (
+                    <div className="bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-6">
+                      <div className="flex items-start gap-3">
+                        <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                          <p className="text-sm font-semibold text-blue-900 mb-1">14-Day Trial Starts After Verification</p>
+                          <p className="text-sm text-blue-800">
+                            Your 14-day trial will begin once your restaurant is verified (usually within 24 hours). This ensures you get the full trial period to use all features.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="grid md:grid-cols-2 gap-4">
                     {/* Free Plan */}
                     <button
@@ -1114,12 +969,20 @@ function ClaimPageContent() {
                   <p className="text-gray-600 text-sm">Yes! The free plan includes 25 guest actions per month, 3 tracking links, and 14 days of analytics. Upgrade only if you need more.</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
+                  <h4 className="font-semibold text-gray-900 mb-1">When does my trial start?</h4>
+                  <p className="text-gray-600 text-sm">Your 14-day trial starts after your restaurant is verified (usually within 24 hours). This ensures you get the full trial period to use all features, not time spent waiting for verification.</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
                   <h4 className="font-semibold text-gray-900 mb-1">What happens after the Pro trial?</h4>
                   <p className="text-gray-600 text-sm">After 14 days, your Pro subscription continues at $29/mo. You can cancel anytime from your dashboard if you'd prefer the Free plan.</p>
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
                   <h4 className="font-semibold text-gray-900 mb-1">Can I edit my information later?</h4>
                   <p className="text-gray-600 text-sm">Absolutely. Once you have your dashboard login, you can edit all your restaurant details anytime.</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <h4 className="font-semibold text-gray-900 mb-1">What happens after I submit my claim?</h4>
+                  <p className="text-gray-600 text-sm">We'll manually verify your restaurant information within 24 hours by checking it against public data sources (primarily Google Business Profile). Once verified, you'll receive an email with your dashboard login and your BiteReserve page will be activated. If we need additional information (like your Google Business Profile link), we'll email you.</p>
                 </div>
               </div>
             </div>

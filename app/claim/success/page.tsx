@@ -78,15 +78,15 @@ function ClaimSuccessContent() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">You're all set!</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Payment Successful!</h1>
           <p className="text-lg text-gray-600 mb-8">
-            Your 14-day trial has started. You now have full access to all features.
+            Your payment method has been saved. Your 14-day trial will start once your restaurant is verified (usually within 24 hours).
           </p>
           
-          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-8">
-            <p className="text-green-800 font-semibold mb-2">🎉 Your Pro trial is active!</p>
-            <p className="text-green-700 text-sm">
-              Your subscription will automatically continue after the trial ends. You can cancel anytime from your dashboard.
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
+            <p className="text-blue-800 font-semibold mb-2">⏳ Pending Verification</p>
+            <p className="text-blue-700 text-sm">
+              We'll verify your restaurant information within 24 hours. Once approved, your 14-day trial will begin and you'll have full access to all features. Your subscription will automatically continue after the trial ends. You can cancel anytime from your dashboard.
             </p>
           </div>
 
@@ -97,25 +97,25 @@ function ClaimSuccessContent() {
                 <svg className="w-5 h-5 text-accent-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>We create your BiteReserve page</span>
+                <span>We verify your restaurant information (within 24 hours)</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-accent-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>You get your dashboard login</span>
+                <span>Your 14-day trial starts once verified</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-accent-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>Start creating tracking links</span>
+                <span>Your BiteReserve page goes live & you get dashboard access</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-accent-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                <span>See where your guests come from!</span>
+                <span>Start creating tracking links & see where your guests come from!</span>
               </li>
             </ul>
           </div>

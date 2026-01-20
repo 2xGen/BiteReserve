@@ -71,7 +71,56 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">4. User Responsibilities</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">4. Restaurant Verification Process</h2>
+              <p className="text-gray-700 mb-4">
+                All restaurant claims on BiteReserve are subject to manual verification to ensure accuracy, ownership, and compliance with our terms. The verification process is designed to protect both restaurant owners and the integrity of our platform.
+              </p>
+              
+              <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">Verification Methods:</h3>
+              <p className="text-gray-700 mb-4">
+                BiteReserve uses multiple methods to verify restaurant information:
+              </p>
+              <ul className="list-disc pl-6 mb-4 space-y-2 text-gray-700">
+                <li><strong>Google Places API Data:</strong> We may use publicly available data from Google Places API to verify restaurant information, including name, address, phone number, website, and business hours. This data is used for comparison and verification purposes only.</li>
+                <li><strong>Manual Review:</strong> Our team manually reviews each restaurant claim by cross-referencing submitted information with public data sources, primarily Google Business Profile listings.</li>
+                <li><strong>Additional Information Requests:</strong> We reserve the right to request additional information or documentation to verify your ownership or authorization to claim a restaurant. This may include, but is not limited to, Google Business Profile links, business registration documents, or other proof of ownership.</li>
+              </ul>
+
+              <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">Verification Timeline:</h3>
+              <p className="text-gray-700 mb-4">
+                We aim to complete verification within 24 hours of submission. However, verification may take longer if additional information is required or if we need to investigate discrepancies. You will be notified via email of the verification status and any additional information needed.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">Verification Outcomes:</h3>
+              <ul className="list-disc pl-6 mb-4 space-y-2 text-gray-700">
+                <li><strong>Approved:</strong> If your restaurant information is verified, your BiteReserve page will be activated and you will receive dashboard access. For Pro and Business subscriptions, your 14-day trial period will begin upon approval.</li>
+                <li><strong>Pending:</strong> If additional information is needed, your claim will remain in pending status until verification is complete. You may be contacted via email to provide additional documentation or clarification.</li>
+                <li><strong>Rejected:</strong> If we cannot verify your ownership or if the information provided does not match public records, your claim may be rejected. You will be notified of the reason for rejection and may be able to resubmit with corrected information.</li>
+              </ul>
+
+              <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">Trial Period and Verification:</h3>
+              <p className="text-gray-700 mb-4">
+                For Pro and Business subscription plans, your 14-day free trial period begins only after your restaurant has been verified and approved. This ensures that you receive the full trial period to use all features, rather than having trial time count down during the verification process. Payment information is collected upfront, but you will not be charged until after the trial period ends (if you do not cancel).
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">Your Responsibilities:</h3>
+              <p className="text-gray-700 mb-4">
+                You agree to:
+              </p>
+              <ul className="list-disc pl-6 mb-4 space-y-2 text-gray-700">
+                <li>Provide accurate and truthful information about your restaurant</li>
+                <li>Respond promptly to requests for additional verification information</li>
+                <li>Only claim restaurants that you own, manage, or are authorized to represent</li>
+                <li>Notify us immediately if any restaurant information changes after verification</li>
+              </ul>
+
+              <p className="text-gray-700">
+                <strong>Right to Request Information:</strong> BiteReserve reserves the right to request any additional information or documentation we deem necessary to verify your restaurant claim. Failure to provide requested information may result in rejection of your claim or suspension of your account.
+              </p>
+            </section>
+
+            <section className="mb-10">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">5. User Responsibilities</h2>
               <p className="text-gray-700 mb-4">You agree to:</p>
               <ul className="list-disc pl-6 mb-4 space-y-2 text-gray-700">
                 <li>Use our services in compliance with all applicable laws and regulations</li>
@@ -85,7 +134,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Subscriptions and Premium Services</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Subscriptions and Premium Services</h2>
               <p className="text-gray-700 mb-4">
                 BiteReserve offers subscription plans (Free, Pro, Business) that provide different levels of access to analytics, tracking links, and platform features. All subscriptions are sold "as is" and are:
               </p>
@@ -112,12 +161,12 @@ export default function TermsPage() {
 
               <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">Free Trial:</h3>
               <p className="text-gray-700 mb-4">
-                If you sign up for a Pro plan free trial, the trial will automatically convert to a paid subscription at the end of the trial period unless you cancel before the trial ends. You authorize us to charge your payment method at the end of the trial period. Cancellation during the trial period will result in immediate access to Free plan features and limits.
+                If you sign up for a Pro or Business plan free trial, the trial period begins only after your restaurant has been verified and approved (see Section 4 for verification details). The trial will automatically convert to a paid subscription at the end of the 14-day trial period unless you cancel before the trial ends. You authorize us to charge your payment method at the end of the trial period. Cancellation during the trial period will result in immediate access to Free plan features and limits.
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Analytics Data and Tracking</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Analytics Data and Tracking</h2>
               <p className="text-gray-700 mb-4">
                 BiteReserve tracks and displays analytics data related to your restaurant page, including page views, clicks, reservation requests, and traffic sources. This data is collected automatically when visitors interact with your BiteReserve page.
               </p>
@@ -133,7 +182,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Campaign Links and Attribution</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Campaign Links and Attribution</h2>
               <p className="text-gray-700 mb-4">
                 BiteReserve allows you to create tracking links for different marketing channels (hotels, influencers, social media, QR codes, etc.). These links help you attribute traffic and bookings to specific sources.
               </p>
@@ -146,7 +195,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Reservation Requests and Booking Systems</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Reservation Requests and Booking Systems</h2>
               <p className="text-gray-700 mb-4">
                 BiteReserve provides a reservation request form and integrates with various booking platforms (OpenTable, Resy, WhatsApp, email, etc.). However, BiteReserve is not a booking platform itself and does not process reservations directly.
               </p>
@@ -159,7 +208,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Account Deletion</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Account Deletion</h2>
               <p className="text-gray-700 mb-4">
                 If you wish to delete your account, please send an email to matthijs@2xgen.com with the subject line "Delete Account Request". In your email, please include:
               </p>
@@ -176,7 +225,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Intellectual Property</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Intellectual Property</h2>
               <p className="text-gray-700 mb-4">
                 All content on BiteReserve, including text, graphics, logos, software, and platform design, is the property of BiteReserve, 2xGen LLC, or its content suppliers and is protected by copyright, trademark, and other intellectual property laws.
               </p>
@@ -186,7 +235,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Limitation of Liability</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">12. Limitation of Liability</h2>
               <p className="text-gray-700 mb-4">
                 BiteReserve shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the service. This includes, but is not limited to:
               </p>
@@ -203,7 +252,7 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">12. Disclaimers</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">13. Disclaimers</h2>
               <p className="text-gray-700 mb-4">
                 The information provided on BiteReserve is for general informational purposes only. We do not guarantee:
               </p>
@@ -220,28 +269,28 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">13. Modifications to Terms</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">14. Modifications to Terms</h2>
               <p className="text-gray-700">
                 We reserve the right to modify these terms at any time. Changes will be effective immediately upon posting on this page. We will update the "Last updated" date at the top of this page when changes are made. Your continued use of the service after changes are posted constitutes acceptance of the modified terms.
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">14. Trademarks</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">15. Trademarks</h2>
               <p className="text-gray-700">
                 BiteReserve, including its name, branding, logos, and all associated marks, is a trademark of 2xGen LLC. All rights are reserved. You may not use, reproduce, imitate, or distribute any trademarked material without prior written authorization from 2xGen LLC. Unauthorized use may violate applicable trademark, copyright, and unfair-competition laws.
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">15. Governing Law</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">16. Governing Law</h2>
               <p className="text-gray-700">
                 These terms shall be governed by and construed in accordance with the laws of the jurisdiction in which BiteReserve operates, without regard to its conflict of law provisions.
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">16. Contact Information</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">17. Contact Information</h2>
               <p className="text-gray-700 mb-4">
                 If you have any questions about these Terms of Service, please contact us at:
               </p>

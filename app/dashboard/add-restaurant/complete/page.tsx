@@ -642,9 +642,9 @@ function CompleteAddRestaurantContent() {
                 >
                   <option value="">Select price level</option>
                   <option value="$">$ - Budget Friendly</option>
-                  <option value="$$">$$ - Moderate</option>
-                  <option value="$$$">$$$ - Expensive</option>
-                  <option value="$$$$">$$$$ - Very Expensive</option>
+                  <option value="$$">$$ - Casual Dining</option>
+                  <option value="$$$">$$$ - Upscale</option>
+                  <option value="$$$$">$$$$ - Fine Dining</option>
                 </select>
               </div>
 

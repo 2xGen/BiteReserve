@@ -30,6 +30,7 @@ interface PendingClaim {
   user_name: string | null
   user_plan: string
   country_code: string | null
+  restaurant_number: string | null
 }
 
 function AdminClaimsPageContent() {
@@ -38,6 +39,8 @@ function AdminClaimsPageContent() {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState<string | null>(null)
   const [filter, setFilter] = useState<'pending' | 'all'>('pending')
+  const [editingClaim, setEditingClaim] = useState<string | null>(null)
+  const [claimEdits, setClaimEdits] = useState<Record<string, { countryCode: string; restaurantNumber: string }>>({})
 
   useEffect(() => {
     if (user) {
@@ -58,13 +61,62 @@ function AdminClaimsPageContent() {
     }
   }
 
+  const handleEditClaim = (claimId: string) => {
+    const claim = claims.find(c => c.id === claimId)
+    if (claim) {
+      setClaimEdits(prev => ({
+        ...prev,
+        [claimId]: {
+          countryCode: claim.country_code || '',
+          restaurantNumber: claim.restaurant_number || '',
+        }
+      }))
+      setEditingClaim(claimId)
+    }
+  }
+
+  const handleCancelEdit = (claimId: string) => {
+    setEditingClaim(null)
+    setClaimEdits(prev => {
+      const newEdits = { ...prev }
+      delete newEdits[claimId]
+      return newEdits
+    })
+  }
+
   const handleApprove = async (claimId: string) => {
+    const edits = claimEdits[claimId]
+    
+    // Validate required fields for new restaurants (those with temp placeholders)
+    const claim = claims.find(c => c.id === claimId)
+    if (claim && (claim.country_code === 'xx' || !claim.country_code || claim.restaurant_number === '00000' || !claim.restaurant_number)) {
+      if (!edits || !edits.countryCode || !edits.restaurantNumber) {
+        alert('Please set the Country Code and Restaurant Number before approving. Click "Edit URL" to set these fields.')
+        return
+      }
+      
+      // Validate format
+      if (edits.countryCode.length !== 2) {
+        alert('Country code must be exactly 2 letters (e.g., "mx", "nl", "es")')
+        return
+      }
+      
+      if (!/^\d{5}$/.test(edits.restaurantNumber)) {
+        alert('Restaurant number must be exactly 5 digits (e.g., "00002", "04480")')
+        return
+      }
+    }
+
     setProcessing(claimId)
     try {
       const response = await fetch('/api/admin/claims/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claimId }),
+        body: JSON.stringify({ 
+          claimId,
+          countryCode: edits?.countryCode || null,
+          restaurantNumber: edits?.restaurantNumber || null,
+        }),
       })
 
       if (!response.ok) {
@@ -74,6 +126,12 @@ function AdminClaimsPageContent() {
 
       // Refresh claims list
       await fetchClaims()
+      setEditingClaim(null)
+      setClaimEdits(prev => {
+        const newEdits = { ...prev }
+        delete newEdits[claimId]
+        return newEdits
+      })
       alert('Claim approved successfully!')
     } catch (error) {
       console.error('Error approving claim:', error)
@@ -237,10 +295,69 @@ function AdminClaimsPageContent() {
                             <p className="text-sm text-gray-600">{claim.address}</p>
                           </div>
                         )}
-                        {claim.country_code && (
-                          <div>
-                            <p className="text-sm font-semibold text-gray-700 mb-1">Country</p>
-                            <p className="text-sm text-gray-600">{claim.country_code.toUpperCase()}</p>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-1">Country Code</p>
+                          {editingClaim === claim.id ? (
+                            <input
+                              type="text"
+                              value={claimEdits[claim.id]?.countryCode || claim.country_code || ''}
+                              onChange={(e) => {
+                                const value = e.target.value.toLowerCase().trim().substring(0, 2)
+                                setClaimEdits(prev => ({
+                                  ...prev,
+                                  [claim.id]: {
+                                    ...prev[claim.id],
+                                    countryCode: value,
+                                    restaurantNumber: prev[claim.id]?.restaurantNumber || claim.restaurant_number || '',
+                                  }
+                                }))
+                              }}
+                              placeholder="e.g., mx, nl, es"
+                              maxLength={2}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
+                            />
+                          ) : (
+                            <p className="text-sm text-gray-600">
+                              {claim.country_code ? claim.country_code.toUpperCase() : 'Not set'}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-1">Restaurant Number</p>
+                          {editingClaim === claim.id ? (
+                            <input
+                              type="text"
+                              value={claimEdits[claim.id]?.restaurantNumber || claim.restaurant_number || ''}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, '').substring(0, 5).padStart(5, '0')
+                                setClaimEdits(prev => ({
+                                  ...prev,
+                                  [claim.id]: {
+                                    ...prev[claim.id],
+                                    countryCode: prev[claim.id]?.countryCode || claim.country_code || '',
+                                    restaurantNumber: value,
+                                  }
+                                }))
+                              }}
+                              placeholder="e.g., 00002"
+                              maxLength={5}
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
+                            />
+                          ) : (
+                            <p className="text-sm text-gray-600">
+                              {claim.restaurant_number || 'Not set'}
+                            </p>
+                          )}
+                        </div>
+                        {editingClaim === claim.id && (
+                          <div className="md:col-span-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-xs font-semibold text-blue-900 mb-1">Restaurant URL Preview:</p>
+                            <p className="text-sm text-blue-800 font-mono">
+                              https://bitereserve.com/r/{claimEdits[claim.id]?.countryCode || 'xx'}/{claimEdits[claim.id]?.restaurantNumber || '00000'}
+                            </p>
+                            <p className="text-xs text-blue-600 mt-1">
+                              Make sure the country code (2 letters) and restaurant number (5 digits) are correct before approving.
+                            </p>
                           </div>
                         )}
                         {claim.website && (
@@ -366,20 +483,48 @@ function AdminClaimsPageContent() {
 
                     {(claim.claim_status === 'pending' || claim.claim_status === null) && (
                       <div className="flex flex-col gap-2">
-                        <button
-                          onClick={() => handleApprove(claim.id)}
-                          disabled={processing === claim.id}
-                          className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {processing === claim.id ? 'Processing...' : 'Approve'}
-                        </button>
-                        <button
-                          onClick={() => handleReject(claim.id)}
-                          disabled={processing === claim.id}
-                          className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Reject
-                        </button>
+                        {editingClaim === claim.id ? (
+                          <>
+                            <button
+                              onClick={() => handleApprove(claim.id)}
+                              disabled={processing === claim.id}
+                              className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {processing === claim.id ? 'Processing...' : 'Approve & Save URL'}
+                            </button>
+                            <button
+                              onClick={() => handleCancelEdit(claim.id)}
+                              disabled={processing === claim.id}
+                              className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleEditClaim(claim.id)}
+                              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                            >
+                              Edit URL
+                            </button>
+                            <button
+                              onClick={() => handleApprove(claim.id)}
+                              disabled={processing === claim.id || (claim.country_code === 'xx' || !claim.country_code || claim.restaurant_number === '00000' || !claim.restaurant_number)}
+                              className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title={(claim.country_code === 'xx' || !claim.country_code || claim.restaurant_number === '00000' || !claim.restaurant_number) ? 'Please set Country Code and Restaurant Number first' : ''}
+                            >
+                              {processing === claim.id ? 'Processing...' : 'Approve'}
+                            </button>
+                            <button
+                              onClick={() => handleReject(claim.id)}
+                              disabled={processing === claim.id}
+                              className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>

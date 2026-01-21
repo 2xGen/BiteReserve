@@ -29,10 +29,8 @@ export async function GET(request: NextRequest) {
 
     const { data: restaurants, error } = await supabase
       .from('restaurants')
-      .select('*')
+      .select('id, name, slug, country_code, restaurant_number, is_claimed, claim_status')
       .eq('user_id', userId)
-      .eq('is_claimed', true)
-      .eq('claim_status', 'approved')
       .order('created_at', { ascending: false })
 
     if (error) {

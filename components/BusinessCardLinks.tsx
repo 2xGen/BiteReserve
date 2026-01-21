@@ -37,6 +37,7 @@ interface BusinessCardLinksProps {
   whatsappNumber?: string | null
   bookingUrl?: string | null
   bookingPlatform?: string | null
+  disableLinks?: boolean // For demo/test pages - prevents navigation
 }
 
 // Icon components for each link type
@@ -111,6 +112,14 @@ const LinkIcons = {
       <circle cx="12" cy="10" r="3"/>
     </svg>
   ),
+  book: (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+  ),
 }
 
 const linkTypeLabels: Record<string, string> = {
@@ -126,6 +135,22 @@ const linkTypeLabels: Record<string, string> = {
   phone: 'Call Us',
   website: 'Visit Website',
   maps: 'View on Map',
+}
+
+// Helper to get icon for custom links
+const getCustomIcon = (iconType: string = 'link') => {
+  const iconMap: Record<string, JSX.Element> = {
+    link: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </svg>
+    ),
+    email: LinkIcons.email,
+    phone: LinkIcons.phone,
+    website: LinkIcons.website,
+  }
+  return iconMap[iconType] || iconMap.link
 }
 
 // Export helper to get section 1 links
@@ -145,11 +170,19 @@ export function getSection1Links(
     Object.entries(businessLinks).forEach(([type, link]) => {
       if (link && link.enabled !== false && link.url && link.section === 1) {
         hasSection1Links = true
+        // Determine icon - use book icon for any non-phone/maps/website link in section 1 (the book button)
+        let icon = LinkIcons[type as keyof typeof LinkIcons] || LinkIcons.website
+        if (type !== 'phone' && type !== 'maps' && type !== 'website' && link.section === 1) {
+          icon = LinkIcons.book // Use generic book icon for booking button
+        } else if (link.is_custom && link.icon) {
+          icon = getCustomIcon(link.icon)
+        }
+        
         section1Links.push({
           type,
           url: link.url,
           label: link.label || linkTypeLabels[type] || type,
-          icon: LinkIcons[type as keyof typeof LinkIcons] || LinkIcons.website,
+          icon,
           order: link.order || 999,
         })
       }
@@ -194,8 +227,14 @@ export default function BusinessCardLinks({
   whatsappNumber,
   bookingUrl,
   bookingPlatform,
+  disableLinks = false,
 }: BusinessCardLinksProps) {
   const handleLinkClick = (linkType: string, url: string) => {
+    // If links are disabled (for demo pages), prevent navigation
+    if (disableLinks) {
+      return
+    }
+    
     // Map link type to event type
     const eventTypeMap: Record<string, any> = {
       opentable: 'opentable_click',
@@ -235,22 +274,6 @@ export default function BusinessCardLinks({
         window.open(url, '_blank', 'noopener,noreferrer')
       }
     }, 100)
-  }
-
-  // Helper to get icon for custom links
-  const getCustomIcon = (iconType: string = 'link') => {
-    const iconMap: Record<string, JSX.Element> = {
-      link: (
-        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-        </svg>
-      ),
-      email: LinkIcons.email,
-      phone: LinkIcons.phone,
-      website: LinkIcons.website,
-    }
-    return iconMap[iconType] || iconMap.link
   }
 
   // Build list of section 2 links only (section 1 handled separately)
@@ -347,15 +370,23 @@ export function Section1HeroButtons({
   const section1Links = getSection1Links(businessLinks, phone, website, googleMapsUrl, bookingUrl, bookingPlatform)
   
   const handleLinkClick = (linkType: string, url: string) => {
-    // Track the click
+    // Track the click - handle all link types
     const eventTypeMap: Record<string, any> = {
       phone: 'phone_click',
       maps: 'maps_click',
       website: 'website_click',
       opentable: 'opentable_click',
       resy: 'resy_click',
+      whatsapp: 'whatsapp_click',
+      tripadvisor: 'tripadvisor_click',
+      instagram: 'instagram_click',
+      facebook: 'facebook_click',
+      twitter: 'twitter_click',
+      yelp: 'yelp_click',
+      email: 'email_click',
     }
-    const eventType = eventTypeMap[linkType] || 'website_click'
+    // For custom links, use website_click as default
+    const eventType = linkType.startsWith('custom_') ? 'website_click' : (eventTypeMap[linkType] || 'website_click')
     trackEvent(restaurantId, eventType, {})
     
     // Handle special cases
@@ -392,7 +423,9 @@ export function Section1HeroButtons({
         const isPhone = link.type === 'phone'
         const isMaps = link.type === 'maps'
         const isWebsite = link.type === 'website'
-        const isBook = link.type === 'opentable' || link.type === 'resy'
+        // Book button is any link that's not phone, maps, or website (the 4th position)
+        // This includes opentable, resy, or any other link type used for booking
+        const isBook = !isPhone && !isMaps && !isWebsite
         
         return (
           <button

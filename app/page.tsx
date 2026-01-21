@@ -46,8 +46,8 @@ export default function Home() {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          <span className="sm:hidden">Claim Your Restaurant — Free</span>
-          <span className="hidden sm:inline">Claim Your Restaurant</span>
+          <span className="sm:hidden">Start Tracking Free</span>
+          <span className="hidden sm:inline">Start Tracking Free</span>
         </Link>
       </div>
       <main className="flex-grow">
@@ -95,7 +95,7 @@ export default function Home() {
             <div className="relative z-10">
               <h1 className="text-[2.5rem] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-3 sm:mb-4 leading-[1.08] sm:leading-[1.1] tracking-tight" style={{textShadow: '0 2px 20px rgba(0,0,0,0.3), 0 4px 40px rgba(0,0,0,0.2)'}}>
                 <span className="block animate-fade-in-scale mb-0.5 sm:mb-1" style={{animationDelay: '0.1s'}}>
-                  <span className="text-white/95">See </span>
+                  <span className="text-white/95">Know </span>
                   <span className="text-primary-900 font-black" style={{textShadow: '0 1px 3px rgba(0,0,0,0.2)'}}>where</span>
                   <span className="text-white/95"> your</span>
                 </span>
@@ -124,7 +124,7 @@ export default function Home() {
                   className="group relative inline-flex items-center justify-center px-6 sm:px-10 py-3.5 sm:py-3 bg-white text-accent-600 font-bold text-base sm:text-lg rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-500 hover:scale-105 hover:shadow-[0_20px_60px_rgba(255,255,255,0.3)]"
                 >
                   <span className="relative z-10 flex items-center">
-                    Claim Your Restaurant — Free
+                    Start Tracking Free
                     <svg className="w-5 h-5 ml-2 sm:ml-3 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
@@ -239,6 +239,9 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/60 via-accent-50/50 to-teal-50/40"></div>
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-6 sm:mb-12">
+              <p className="text-lg sm:text-xl text-gray-700 mb-4 sm:mb-6 font-medium">
+                Sound familiar? Here's how BiteReserve solves this...
+              </p>
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 sm:mb-4">
                 With BiteReserve, you <span className="text-accent-600">know</span>
               </h2>
@@ -246,17 +249,17 @@ export default function Home() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
               <div className="bg-white rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-lg border border-gray-100 text-center hover:shadow-xl transition-shadow">
-                <div className="text-3xl sm:text-5xl font-black text-accent-600 mb-1 sm:mb-3">47</div>
+                <div className="text-3xl sm:text-5xl font-black text-accent-600 mb-1 sm:mb-3">62</div>
                 <p className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2">guests from Grand Hotel</p>
-                <p className="text-gray-500 text-xs sm:text-sm">This month. Now you have proof.</p>
+                <p className="text-gray-500 text-xs sm:text-sm">This month alone. Now you have proof.</p>
               </div>
               <div className="bg-white rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-lg border border-gray-100 text-center hover:shadow-xl transition-shadow">
-                <div className="text-3xl sm:text-5xl font-black text-accent-600 mb-1 sm:mb-3">28</div>
+                <div className="text-3xl sm:text-5xl font-black text-accent-600 mb-1 sm:mb-3">34</div>
                 <p className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2">from @foodie_adventures</p>
-                <p className="text-gray-500 text-xs sm:text-sm">That free dinner? Worth $2,800+.</p>
+                <p className="text-gray-500 text-xs sm:text-sm">That free dinner? Worth $3,200+ this month.</p>
               </div>
               <div className="bg-white rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-lg border border-gray-100 text-center hover:shadow-xl transition-shadow">
-                <div className="text-3xl sm:text-5xl font-black text-accent-600 mb-1 sm:mb-3">+23%</div>
+                <div className="text-3xl sm:text-5xl font-black text-accent-600 mb-1 sm:mb-3">+31%</div>
                 <p className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2">vs. last December</p>
                 <p className="text-gray-500 text-xs sm:text-sm">Instagram is driving the growth.</p>
               </div>
@@ -289,7 +292,7 @@ export default function Home() {
             <div className="flex flex-col md:flex-row items-center justify-center gap-3 sm:gap-4 md:gap-8">
               <div className="flex items-center gap-3 sm:gap-4 bg-white rounded-xl px-4 sm:px-6 py-3 sm:py-4 shadow-md border border-gray-200 w-full md:w-auto">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">1</div>
-                <span className="font-semibold text-gray-900 text-sm sm:text-base">Claim your page</span>
+                <span className="font-semibold text-gray-900 text-sm sm:text-base">Create your page</span>
               </div>
               <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 rotate-90 md:rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -303,7 +306,7 @@ export default function Home() {
               </svg>
               <div className="flex items-center gap-3 sm:gap-4 bg-white rounded-xl px-4 sm:px-6 py-3 sm:py-4 shadow-md border border-gray-200 w-full md:w-auto">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">3</div>
-                <span className="font-semibold text-gray-900 text-sm sm:text-base">See who sends guests to your restaurant</span>
+                <span className="font-semibold text-gray-900 text-sm sm:text-base">See results</span>
               </div>
             </div>
           </div>
@@ -323,7 +326,7 @@ export default function Home() {
             
             <div className="grid grid-cols-7 gap-2 sm:gap-4 max-w-5xl mx-auto">
               {/* OpenTable */}
-              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group cursor-pointer" title="Trackable">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                   <img 
                     src="https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/opentable%20logo.png" 
@@ -335,7 +338,7 @@ export default function Home() {
               </div>
 
               {/* Resy */}
-              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group cursor-pointer" title="Trackable">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                   <img 
                     src="https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/resy%20logo.png" 
@@ -357,7 +360,7 @@ export default function Home() {
               </div>
 
               {/* Instagram */}
-              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group cursor-pointer" title="Trackable">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                   <svg className="w-8 h-8 sm:w-10 sm:h-10 text-accent-600" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
@@ -377,7 +380,7 @@ export default function Home() {
               </div>
 
               {/* TripAdvisor */}
-              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group cursor-pointer" title="Trackable">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                   <img 
                     src="https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/trip%20advisor.png" 
@@ -389,7 +392,7 @@ export default function Home() {
               </div>
 
               {/* Yelp */}
-              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group cursor-pointer" title="Trackable">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                   <img 
                     src="https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/yelp%20logo.png" 
@@ -550,41 +553,144 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Feature Comparison Table */}
+            <div className="mt-8 sm:mt-12 bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="relative">
+                      <th className="px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg font-bold text-gray-900 text-left bg-gray-50/50 border-b border-gray-200">
+                        Feature
+                      </th>
+                      <th className="px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg font-bold text-gray-900 text-center bg-gray-50/50 border-b border-gray-200 border-l border-gray-200">
+                        <div className="flex flex-col items-center gap-1">
+                          <span>Free</span>
+                          <span className="text-xs font-normal text-gray-500">$0 forever</span>
+                        </div>
+                      </th>
+                      <th className="px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg font-bold text-white text-center bg-gradient-to-br from-emerald-500 to-emerald-600 border-b border-emerald-600 border-l border-emerald-400/30">
+                        <div className="flex flex-col items-center gap-1">
+                          <span>Pro</span>
+                          <span className="text-xs font-normal text-white/90">$29/mo</span>
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <tr className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-700 font-medium">Restaurants</td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-900 text-center font-semibold border-l border-gray-100">
+                        1
+                      </td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-900 text-center font-bold bg-emerald-50/30 border-l border-emerald-200/50">
+                        Up to 3
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-gray-50/50 transition-colors bg-white">
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-700 font-medium">Guest Actions/Month</td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-900 text-center font-semibold border-l border-gray-100">
+                        25
+                      </td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-900 text-center font-bold bg-emerald-50/30 border-l border-emerald-200/50">
+                        <span className="inline-flex items-center gap-1">
+                          <span>Unlimited</span>
+                          <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-700 font-medium">Tracking Links</td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-900 text-center font-semibold border-l border-gray-100">
+                        3
+                      </td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-900 text-center font-bold bg-emerald-50/30 border-l border-emerald-200/50">
+                        <span className="inline-flex items-center gap-1">
+                          <span>Unlimited</span>
+                          <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-gray-50/50 transition-colors bg-white">
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-700 font-medium">Choose Links to Track</td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-center border-l border-gray-100">
+                        <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100">
+                          <svg className="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-center bg-emerald-50/30 border-l border-emerald-200/50">
+                        <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-200">
+                          <svg className="w-5 h-5 text-emerald-700" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-700 font-medium">Page Customization</td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-center border-l border-gray-100">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
+                          <span className="text-gray-400 text-lg font-bold">—</span>
+                        </span>
+                      </td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-center bg-emerald-50/30 border-l border-emerald-200/50">
+                        <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-200">
+                          <svg className="w-5 h-5 text-emerald-700" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-gray-50/50 transition-colors bg-white">
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-700 font-medium">Analytics History</td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-900 text-center font-semibold border-l border-gray-100">
+                        14 days
+                      </td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-900 text-center font-bold bg-emerald-50/30 border-l border-emerald-200/50">
+                        90 days
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-sm sm:text-base text-gray-700 font-medium">Weekly Reports</td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-center border-l border-gray-100">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
+                          <span className="text-gray-400 text-lg font-bold">—</span>
+                        </span>
+                      </td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-center bg-emerald-50/30 border-l border-emerald-200/50">
+                        <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-200">
+                          <svg className="w-5 h-5 text-emerald-700" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="border-t-2 border-gray-200 bg-gray-50/30">
+                      <td className="px-6 sm:px-8 py-6 sm:py-7"></td>
+                      <td className="px-6 sm:px-8 py-6 sm:py-7 text-center border-l border-gray-200">
+                        <Link href="/claim" className="inline-flex items-center justify-center w-full max-w-[200px] px-6 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-bold text-base rounded-xl transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
+                          Start Free
+                        </Link>
+                      </td>
+                      <td className="px-6 sm:px-8 py-6 sm:py-7 text-center bg-emerald-50/40 border-l border-emerald-200/50">
+                        <Link href="/claim" className="inline-flex items-center justify-center w-full max-w-[200px] px-6 py-3.5 bg-gradient-to-r from-accent-600 to-accent-700 hover:from-accent-700 hover:to-accent-800 text-white font-bold text-base rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                          Start Free Trial
+                        </Link>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
             <p className="text-center text-xs sm:text-sm text-gray-500 mt-5 sm:mt-8">
               Need more than 3 restaurants? <Link href="/claim" className="text-accent-600 font-semibold hover:underline">Business plan ($99/mo) - up to 15 locations</Link>
             </p>
-          </div>
-        </section>
-
-        {/* 2xGen Section - Mobile optimized */}
-        <section className="py-10 sm:py-16 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-accent-500/10 rounded-full blur-3xl hidden sm:block"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary-700/30 rounded-full blur-3xl hidden sm:block"></div>
-          
-          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl sm:rounded-2xl p-5 sm:p-8 hover:bg-white/10 transition-all">
-              <h2 className="text-xl sm:text-3xl md:text-4xl font-semibold text-white mb-2 sm:mb-4 leading-tight">
-                Want more guests, not just data?
-              </h2>
-              
-              <p className="text-sm sm:text-base text-white/80 mb-4 sm:mb-6 max-w-2xl mx-auto">
-                Some restaurants work with our partner 2xGen to actively grow hotel referrals using BiteReserve data.
-              </p>
-              
-              <a
-                href="https://2xgen.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 text-primary-900 font-semibold text-sm sm:text-base bg-white hover:bg-accent-50 rounded-lg hover:shadow-xl transition-all duration-200 group transform hover:-translate-y-0.5"
-              >
-                Learn about 2xGen
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </a>
-              <p className="text-[10px] sm:text-xs text-white/60 mt-2 sm:mt-3">(Optional. Separate service.)</p>
-            </div>
           </div>
         </section>
 
@@ -621,7 +727,7 @@ export default function Home() {
                 className="group relative inline-flex items-center justify-center px-6 sm:px-10 py-3.5 sm:py-4 bg-white text-accent-600 font-bold text-base sm:text-lg rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-500 hover:scale-105 hover:shadow-[0_20px_60px_rgba(255,255,255,0.3)]"
               >
                 <span className="relative z-10 flex items-center">
-                  Claim Your Restaurant — Free
+                  Start Tracking Free
                   <svg className="w-5 h-5 ml-2 sm:ml-3 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>

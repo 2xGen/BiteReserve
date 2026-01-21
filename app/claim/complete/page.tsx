@@ -198,21 +198,31 @@ function CompleteClaimContent() {
 
     setIsSubmitting(true)
     try {
-      // Build business_links object with only enabled links
-      const businessLinks: Record<string, { url: string; enabled: boolean }> = {}
+      // Build business_links object with only enabled links (include section and order for consistency)
+      const businessLinks: Record<string, { url: string; enabled: boolean; section?: number; order?: number }> = {}
+      let section1Order = 1
+      let section2Order = 1
+      
       Object.entries(formData.businessLinks).forEach(([key, link]) => {
         if (link.enabled && link.url.trim()) {
+          // Determine section: phone, maps, website, opentable, resy go to section 1
+          const isSection1 = ['phone', 'maps', 'website', 'opentable', 'resy'].includes(key)
+          const section = isSection1 ? 1 : 2
+          const order = isSection1 ? section1Order++ : section2Order++
+          
           // Auto-update phone, website, maps links from form fields
           if (key === 'phone' && formData.phone) {
-            businessLinks[key] = { url: `tel:${formData.phone}`, enabled: true }
+            businessLinks[key] = { url: `tel:${formData.phone}`, enabled: true, section, order }
           } else if (key === 'website' && formData.website) {
-            businessLinks[key] = { url: formData.website, enabled: true }
+            businessLinks[key] = { url: formData.website, enabled: true, section, order }
           } else if (key === 'maps' && formData.address) {
-            businessLinks[key] = { url: '', enabled: true } // Will be set server-side
+            businessLinks[key] = { url: '', enabled: true, section, order } // Will be set server-side
           } else {
             businessLinks[key] = {
               url: link.url.trim(),
               enabled: true,
+              section,
+              order,
             }
           }
         }
@@ -241,8 +251,10 @@ function CompleteClaimContent() {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to complete restaurant details')
+        const errorData = await response.json()
+        const errorMessage = errorData.error || errorData.details || 'Failed to complete restaurant details'
+        console.error('API Error:', errorData)
+        throw new Error(errorMessage)
       }
 
       setIsComplete(true)
@@ -252,7 +264,9 @@ function CompleteClaimContent() {
       }, 2000)
     } catch (error) {
       console.error('Error completing restaurant:', error)
-      alert(error instanceof Error ? error.message : 'Failed to save details. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save details. Please try again.'
+      console.error('Full error details:', error)
+      alert(`${errorMessage}\n\nIf this persists, please check the browser console for more details.`)
     } finally {
       setIsSubmitting(false)
     }
@@ -361,7 +375,7 @@ function CompleteClaimContent() {
                 {/* Tagline */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Tagline <span className="text-gray-500 font-normal">(Short description)</span>
+                    Tagline <span className="text-gray-500 font-normal">(Optional)</span>
                   </label>
                   <input
                     type="text"
@@ -380,7 +394,7 @@ function CompleteClaimContent() {
                 {/* Address */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Full Address
+                    Full Address <span className="text-gray-500 font-normal">(Optional)</span>
                   </label>
                   <input
                     type="text"
@@ -395,7 +409,7 @@ function CompleteClaimContent() {
                 {/* Phone */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Phone Number
+                    Phone Number <span className="text-gray-500 font-normal">(Optional)</span>
                   </label>
                   <input
                     type="tel"
@@ -410,7 +424,7 @@ function CompleteClaimContent() {
                 {/* Website */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Website
+                    Website <span className="text-gray-500 font-normal">(Optional)</span>
                   </label>
                   <input
                     type="url"
@@ -424,9 +438,12 @@ function CompleteClaimContent() {
 
                 {/* Business Links Section */}
                 <div className="border-t border-gray-200 pt-6">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Business Card Links</h2>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Choose which links to display on your restaurant listing page. All clicks are tracked.
+                  <h2 className="text-lg font-bold text-gray-900 mb-1">Business Card Links</h2>
+                  <p className="text-sm text-gray-600 mb-1">
+                    <span className="text-gray-500">(Optional)</span> Choose which links to display on your restaurant listing page. All clicks are tracked.
+                  </p>
+                  <p className="text-xs text-gray-500 mb-4">
+                    You can add these later in your dashboard if you prefer.
                   </p>
                   
                   <div className="space-y-4">
@@ -654,9 +671,9 @@ function CompleteClaimContent() {
                   >
                     <option value="">Select price level</option>
                     <option value="$">$ - Budget Friendly</option>
-                    <option value="$$">$$ - Moderate</option>
-                    <option value="$$$">$$$ - Expensive</option>
-                    <option value="$$$$">$$$$ - Very Expensive</option>
+                    <option value="$$">$$ - Casual Dining</option>
+                    <option value="$$$">$$$ - Upscale</option>
+                    <option value="$$$$">$$$$ - Fine Dining</option>
                   </select>
                   <p className="text-xs text-gray-500 mt-1">
                     This helps diners understand your price range.
@@ -666,7 +683,7 @@ function CompleteClaimContent() {
                 {/* Opening Hours */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Opening Hours
+                    Opening Hours <span className="text-gray-500 font-normal">(Optional)</span>
                   </label>
                   <p className="text-xs text-gray-500 mb-3">
                     Enter your opening hours for each day. Use format like "5:00 PM – 10:00 PM" or "Closed" for closed days.
@@ -695,7 +712,7 @@ function CompleteClaimContent() {
                 {/* Cuisine Types */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Cuisine Type(s)
+                    Cuisine Type(s) <span className="text-gray-500 font-normal">(Optional)</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {cuisineOptions.map((cuisine) => (
@@ -723,7 +740,7 @@ function CompleteClaimContent() {
                 {/* Features */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Features & Amenities
+                    Features & Amenities <span className="text-gray-500 font-normal">(Optional)</span>
                   </label>
                   <p className="text-xs text-gray-500 mb-3">
                     Select features that apply to your restaurant. These will appear on your listing page.

@@ -71,6 +71,9 @@ export default function Footer() {
           <p className="text-[10px] sm:text-xs text-primary-400 text-center">
             © {new Date().getFullYear()} BiteReserve
           </p>
+          <p className="text-[10px] sm:text-xs text-primary-400 text-center mt-2">
+            Want more guests, not just data? Some restaurants work with our partner <a href="https://2xgen.com" target="_blank" rel="noopener noreferrer" className="text-primary-300 hover:text-white underline">2xGen</a> to actively grow hotel referrals using BiteReserve data.
+          </p>
         </div>
       </div>
     </footer>

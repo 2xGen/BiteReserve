@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     const body = await request.json()
-    const { claimId } = body
+    const { claimId, countryCode, restaurantNumber } = body
 
     if (!claimId) {
       return NextResponse.json(
@@ -49,15 +49,55 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Build update data
+    const updateData: any = {
+      claim_status: 'approved',
+      is_claimed: true,
+      claim_reviewed_at: new Date().toISOString(),
+      // claim_reviewed_by: adminUserId, // Add this when you have admin user tracking
+    }
+
+    // Update country_code and restaurant_number if provided (for new restaurants)
+    if (countryCode && restaurantNumber) {
+      // Validate format
+      if (countryCode.length !== 2) {
+        return NextResponse.json(
+          { error: 'Country code must be exactly 2 letters' },
+          { status: 400 }
+        )
+      }
+      
+      if (!/^\d{5}$/.test(restaurantNumber)) {
+        return NextResponse.json(
+          { error: 'Restaurant number must be exactly 5 digits' },
+          { status: 400 }
+        )
+      }
+
+      // Check if this country_code + restaurant_number combination already exists
+      const { data: existing } = await supabase
+        .from('restaurants')
+        .select('id')
+        .eq('country_code', countryCode.toLowerCase())
+        .eq('restaurant_number', restaurantNumber)
+        .neq('id', claimId)
+        .single()
+
+      if (existing) {
+        return NextResponse.json(
+          { error: `Restaurant URL /r/${countryCode}/${restaurantNumber} already exists. Please choose a different number.` },
+          { status: 400 }
+        )
+      }
+
+      updateData.country_code = countryCode.toLowerCase()
+      updateData.restaurant_number = restaurantNumber
+    }
+
     // Update restaurant to approved status
     const { error: updateError } = await supabase
       .from('restaurants')
-      .update({
-        claim_status: 'approved',
-        is_claimed: true,
-        claim_reviewed_at: new Date().toISOString(),
-        // claim_reviewed_by: adminUserId, // Add this when you have admin user tracking
-      })
+      .update(updateData)
       .eq('id', claimId)
 
     if (updateError) {

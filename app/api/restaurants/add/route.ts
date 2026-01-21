@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       restaurantId, // If claiming existing restaurant
       restaurantName,
       city,
-      country,
+      country, // Country name (admin will set ISO code and restaurant number manually)
     } = body
 
     // Validate required fields
@@ -136,61 +136,40 @@ export async function POST(request: NextRequest) {
       restaurantIdToLink = restaurantId
     } else {
       // Creating new restaurant
+      // Admin will set country_code, restaurant_number, and slug manually in admin/claims
+      // For now, use temporary placeholders - admin will update these when reviewing
+      const tempCountryCode = 'xx' // Temporary placeholder
+      const tempRestaurantNumber = '00000' // Temporary placeholder - admin will set proper number
+      
+      // Generate a basic slug for internal use (not used in public URL)
       const slugBase = `${restaurantName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
       
       // Check for slug conflicts
-      let slug = slugBase
+      let finalSlug = slugBase
       let counter = 1
       while (true) {
         const { data: existing } = await supabase
           .from('restaurants')
           .select('id')
-          .eq('slug', slug)
+          .eq('slug', finalSlug)
           .single()
 
         if (!existing) break
-        slug = `${slugBase}-${counter}`
+        finalSlug = `${slugBase}-${counter}`
         counter++
       }
-
-      // Infer country code from country name
-      const countryCodeMap: Record<string, string> = {
-        'united states': 'us', 'usa': 'us', 'us': 'us',
-        'united kingdom': 'uk', 'uk': 'uk', 'england': 'uk',
-        'spain': 'es', 'españa': 'es',
-        'france': 'fr',
-        'italy': 'it', 'italia': 'it',
-        'germany': 'de', 'deutschland': 'de',
-        'netherlands': 'nl', 'holland': 'nl',
-        'belgium': 'be', 'belgië': 'be', 'belgique': 'be',
-        'portugal': 'pt',
-        'greece': 'gr',
-        'turkey': 'tr', 'türkiye': 'tr',
-        'mexico': 'mx', 'méxico': 'mx',
-        'canada': 'ca',
-        'australia': 'au',
-      }
-      
-      const countryLower = country.toLowerCase().trim()
-      const countryCode = countryCodeMap[countryLower] || 'us'
-
-      // Get next restaurant number for this country
-      const { data: nextNumberData, error: numberError } = await supabase
-        .rpc('get_next_restaurant_number', { p_country_code: countryCode })
-
-      const restaurantNumber = numberError ? '00001' : nextNumberData
 
       const { data: newRestaurant, error: createError } = await supabase
         .from('restaurants')
         .insert({
           user_id: userId,
-          slug,
+          slug: finalSlug, // Internal slug (not used in public URL - URL is /r/[country_code]/[restaurant_number])
           name: restaurantName,
-          country_code: countryCode,
-          restaurant_number: restaurantNumber,
+          country_code: tempCountryCode, // Temporary - admin will set proper ISO code
+          restaurant_number: tempRestaurantNumber, // Temporary - admin will set proper number
           is_claimed: false, // Will be set to true when approved
           is_active: true,
-          claim_status: 'pending' // Awaiting manual review
+          claim_status: 'pending' // Awaiting manual review - admin will set country_code and restaurant_number to create URL
         })
         .select('id')
         .single()

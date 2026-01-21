@@ -403,7 +403,7 @@ function EditPageContent() {
                 url: link.url.trim(),
                 enabled: true,
                 order: link.order || 999,
-                section: link.section || 2,
+                section: link.section !== undefined ? link.section : 2, // Preserve section, default to 2 if not set
                 label: link.label,
                 icon: link.icon
               }
@@ -443,9 +443,27 @@ function EditPageContent() {
           businessLinks: Object.keys(businessLinks).length > 0 ? businessLinks : null,
           logoUrl: formData.logoUrl || null,
           coverBannerColor: formData.coverBannerColor || null,
-          whatsappNumber: formData.businessLinks.whatsapp.url ? formData.businessLinks.whatsapp.url.replace('https://wa.me/', '').replace(/\D/g, '') : null,
-          bookingUrl: formData.businessLinks.opentable.enabled ? formData.businessLinks.opentable.url : formData.businessLinks.resy.enabled ? formData.businessLinks.resy.url : null,
-          bookingPlatform: formData.businessLinks.opentable.enabled ? 'opentable' : formData.businessLinks.resy.enabled ? 'resy' : null,
+          whatsappNumber: formData.businessLinks.whatsapp?.url ? formData.businessLinks.whatsapp.url.replace('https://wa.me/', '').replace(/\D/g, '') : null,
+          bookingUrl: (() => {
+            // Find the book link in section 1 (any link that's not phone, maps, or website)
+            const bookLink = Object.entries(formData.businessLinks).find(([key, link]) => 
+              link.enabled && link.section === 1 && key !== 'phone' && key !== 'maps' && key !== 'website'
+            )
+            return bookLink ? bookLink[1].url : null
+          })(),
+          bookingPlatform: (() => {
+            // Determine booking platform from section 1 book link
+            const bookLink = Object.entries(formData.businessLinks).find(([key, link]) => 
+              link.enabled && link.section === 1 && key !== 'phone' && key !== 'maps' && key !== 'website'
+            )
+            if (bookLink) {
+              const key = bookLink[0]
+              if (key === 'opentable') return 'opentable'
+              if (key === 'resy') return 'resy'
+              return 'custom' // For other link types used as booking
+            }
+            return null
+          })(),
         }),
       })
 
@@ -660,6 +678,9 @@ function EditPageContent() {
                   placeholder="+1 234 567 8900"
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  We recommend including the country code (e.g., +1 for US/Canada, +44 for UK)
+                </p>
               </div>
 
               {/* Website */}
@@ -984,9 +1005,9 @@ function EditPageContent() {
                 >
                   <option value="">Select price level</option>
                   <option value="$">$ - Budget Friendly</option>
-                  <option value="$$">$$ - Moderate</option>
-                  <option value="$$$">$$$ - Expensive</option>
-                  <option value="$$$$">$$$$ - Very Expensive</option>
+                  <option value="$$">$$ - Casual Dining</option>
+                  <option value="$$$">$$$ - Upscale</option>
+                  <option value="$$$$">$$$$ - Fine Dining</option>
                 </select>
               </div>
 

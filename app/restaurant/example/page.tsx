@@ -440,9 +440,10 @@ export default function ExampleRestaurantPage() {
             </button>
 
             {/* Reserve Button */}
-            <a
-              href="#reserve"
-              className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg sm:rounded-xl bg-accent-500 hover:bg-accent-600 text-white transition-all duration-300 active:scale-95 sm:hover:scale-105"
+            <button
+              type="button"
+              className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg sm:rounded-xl bg-accent-500 hover:bg-accent-600 text-white transition-all duration-300 active:scale-95 sm:hover:scale-105 cursor-default"
+              onClick={(e) => e.preventDefault()}
             >
               <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center mb-1 sm:mb-2">
                 <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -450,7 +451,7 @@ export default function ExampleRestaurantPage() {
                 </svg>
               </div>
               <span className="font-bold text-xs sm:text-sm">Book</span>
-            </a>
+            </button>
           </div>
 
           {/* Revealed Phone Number */}
@@ -459,16 +460,17 @@ export default function ExampleRestaurantPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                 <div>
                   <p className="text-xs sm:text-sm text-green-700 font-medium">Phone Number</p>
-                  <a href={`tel:${restaurant.phone}`} className="text-base sm:text-xl font-bold text-green-800 hover:underline">
+                  <span className="text-base sm:text-xl font-bold text-green-800">
                     {restaurant.phone}
-                  </a>
+                  </span>
                 </div>
-                <a
-                  href={`tel:${restaurant.phone}`}
-                  className="w-full sm:w-auto text-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors text-sm"
+                <button
+                  type="button"
+                  className="w-full sm:w-auto text-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors text-sm cursor-default"
+                  onClick={(e) => e.preventDefault()}
                 >
                   Call Now
-                </a>
+                </button>
               </div>
             </div>
           )}
@@ -481,17 +483,16 @@ export default function ExampleRestaurantPage() {
                   <p className="text-xs sm:text-sm text-purple-700 font-medium">Address</p>
                   <p className="text-sm sm:text-lg font-bold text-purple-800">{restaurant.address}</p>
                 </div>
-                <a
-                  href={restaurant.googleMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto text-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                <button
+                  type="button"
+                  className="w-full sm:w-auto text-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 text-sm cursor-default"
+                  onClick={(e) => e.preventDefault()}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
                   Open Maps
-                </a>
+                </button>
               </div>
             </div>
           )}
@@ -505,7 +506,9 @@ export default function ExampleRestaurantPage() {
                   <p className="text-sm sm:text-lg font-bold text-blue-800 truncate">{restaurant.website}</p>
                 </div>
                 <button
-                  className="w-full sm:w-auto text-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                  type="button"
+                  className="w-full sm:w-auto text-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 text-sm cursor-default"
+                  onClick={(e) => e.preventDefault()}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -539,6 +542,7 @@ export default function ExampleRestaurantPage() {
           whatsappNumber={null}
           bookingUrl={null}
           bookingPlatform={null}
+          disableLinks={true}
         />
 
         {/* Powered By */}

@@ -29,7 +29,7 @@ function AddRestaurantContent() {
   const [formData, setFormData] = useState({
     restaurantName: '',
     city: '',
-    country: '',
+    country: '', // Country name (simple text input)
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   
@@ -50,7 +50,7 @@ function AddRestaurantContent() {
       ...prev,
       restaurantName: restaurant.name || '',
       city: city,
-      country: country || restaurant.country_code.toUpperCase(),
+      country: country,
     }))
     
     setShowSearchResults(false)
@@ -136,7 +136,7 @@ function AddRestaurantContent() {
           restaurantId: selectedRestaurant?.id || null,
           restaurantName: formData.restaurantName,
           city: formData.city,
-          country: formData.country,
+          country: formData.country, // Country name (admin will set ISO code and restaurant number manually)
         }),
       })
 
@@ -172,7 +172,7 @@ function AddRestaurantContent() {
             </Link>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Add Another Restaurant</h1>
             <p className="text-gray-600">
-              Add an additional restaurant to your account. You'll be able to add details and submit for verification.
+              Add an additional restaurant to your account. We'll verify it within 24 hours and create your restaurant page.
             </p>
           </div>
 
@@ -184,7 +184,7 @@ function AddRestaurantContent() {
                   Is your restaurant already listed?
                 </label>
                 <p className="text-sm text-gray-600 mb-4">
-                  Search to see if we already have your restaurant's information from Google Places. If found, we'll pre-fill the form for you.
+                  Search to see if we already have your restaurant's information. If found, we'll pre-fill the form for you.
                 </p>
                 <div className="relative" data-search-container>
                   <input
@@ -289,7 +289,7 @@ function AddRestaurantContent() {
                         value={formData.country}
                         onChange={handleChange}
                         required
-                        placeholder="e.g., Spain"
+                        placeholder="e.g., Spain, Netherlands, United States"
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 outline-none"
                       />
                     </div>

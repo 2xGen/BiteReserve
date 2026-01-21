@@ -477,7 +477,7 @@ function EditPageContent() {
               </div>
 
               {/* Page Customization (Pro/Business only) */}
-              {isProOrBusiness && (
+              {subscription && (subscription.plan === 'pro' || subscription.plan === 'business') && (
                 <div className="border-t border-gray-200 pt-6 mb-6">
                   <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <svg className="w-5 h-5 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -651,7 +651,7 @@ function EditPageContent() {
                 </p>
                 
                 {/* Enabled Links Ordering (Pro/Business only) */}
-                {isProOrBusiness && (() => {
+                {subscription && (subscription.plan === 'pro' || subscription.plan === 'business') && (() => {
                   const enabledLinks = Object.entries(formData.businessLinks)
                     .filter(([_, link]) => link.enabled && link.url.trim())
                     .sort(([_, a], [__, b]) => (a.order || 999) - (b.order || 999))

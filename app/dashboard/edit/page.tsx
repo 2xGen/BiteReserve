@@ -314,6 +314,53 @@ function EditPageContent() {
     }))
   }
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !restaurantId) return
+
+    // Validate file type
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml']
+    if (!allowedTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload PNG, JPEG, WebP, or SVG.')
+      return
+    }
+
+    // Validate file size (max 2MB)
+    const MAX_SIZE = 2 * 1024 * 1024 // 2MB
+    if (file.size > MAX_SIZE) {
+      alert('File too large. Maximum size is 2MB.')
+      return
+    }
+
+    setUploadingLogo(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('restaurantId', restaurantId)
+
+      const response = await fetch('/api/restaurants/upload-logo', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to upload logo')
+      }
+
+      const data = await response.json()
+      setFormData(prev => ({
+        ...prev,
+        logoUrl: data.logoUrl,
+      }))
+    } catch (error) {
+      console.error('Error uploading logo:', error)
+      alert(error instanceof Error ? error.message : 'Failed to upload logo. Please try again.')
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!restaurantId) return

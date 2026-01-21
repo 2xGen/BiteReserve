@@ -684,12 +684,12 @@ function ClaimPageContent() {
                         </div>
                       </div>
                     )}
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-4">
                     {/* Free Plan */}
                     <button
                       type="button"
                       onClick={() => setSelectedPlan('free')}
-                      className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      className={`p-5 rounded-xl border-2 text-left transition-all ${
                         selectedPlan === 'free'
                           ? 'border-accent-500 bg-accent-50'
                           : 'border-gray-200 hover:border-gray-300'
@@ -739,7 +739,7 @@ function ClaimPageContent() {
                     <button
                       type="button"
                       onClick={() => setSelectedPlan('pro')}
-                      className={`p-4 rounded-xl border-2 text-left transition-all relative ${
+                      className={`p-5 rounded-xl border-2 text-left transition-all relative ${
                         selectedPlan === 'pro'
                           ? 'border-accent-500 bg-accent-50'
                           : 'border-gray-200 hover:border-gray-300'

@@ -198,29 +198,29 @@ function CompleteClaimContent() {
 
     setIsSubmitting(true)
     try {
+      // Build business_links object with only enabled links
+      const businessLinks: Record<string, { url: string; enabled: boolean }> = {}
+      Object.entries(formData.businessLinks).forEach(([key, link]) => {
+        if (link.enabled && link.url.trim()) {
+          // Auto-update phone, website, maps links from form fields
+          if (key === 'phone' && formData.phone) {
+            businessLinks[key] = { url: `tel:${formData.phone}`, enabled: true }
+          } else if (key === 'website' && formData.website) {
+            businessLinks[key] = { url: formData.website, enabled: true }
+          } else if (key === 'maps' && formData.address) {
+            businessLinks[key] = { url: '', enabled: true } // Will be set server-side
+          } else {
+            businessLinks[key] = {
+              url: link.url.trim(),
+              enabled: true,
+            }
+          }
+        }
+      })
+
       const response = await fetch('/api/restaurants/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Build business_links object with only enabled links
-        const businessLinks: Record<string, { url: string; enabled: boolean }> = {}
-        Object.entries(formData.businessLinks).forEach(([key, link]) => {
-          if (link.enabled && link.url.trim()) {
-            // Auto-update phone, website, maps links from form fields
-            if (key === 'phone' && formData.phone) {
-              businessLinks[key] = { url: `tel:${formData.phone}`, enabled: true }
-            } else if (key === 'website' && formData.website) {
-              businessLinks[key] = { url: formData.website, enabled: true }
-            } else if (key === 'maps' && formData.address) {
-              businessLinks[key] = { url: '', enabled: true } // Will be set server-side
-            } else {
-              businessLinks[key] = {
-                url: link.url.trim(),
-                enabled: true,
-              }
-            }
-          }
-        })
-
         body: JSON.stringify({
           restaurantId,
           tagline: formData.tagline || null,

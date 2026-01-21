@@ -427,8 +427,8 @@ export default function DashboardPage() {
             color="blue"
           />
           <MetricCard
-            title="Reservations"
-            shortTitle="Bookings"
+            title="Booking Attempts"
+            shortTitle="Attempts"
             value={data.reservationRequests.toString()}
             change="+8.3%"
             positive={true}
@@ -472,7 +472,7 @@ export default function DashboardPage() {
           {/* Main Chart */}
           <div className="lg:col-span-2 bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h3 className="text-sm sm:text-lg font-bold text-gray-900">Traffic & Bookings</h3>
+              <h3 className="text-sm sm:text-lg font-bold text-gray-900">Traffic & Guest Actions</h3>
               <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <div className="w-2 h-2 sm:w-3 sm:h-3 bg-accent-500 rounded-full"></div>

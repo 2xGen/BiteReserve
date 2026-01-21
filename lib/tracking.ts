@@ -12,6 +12,16 @@ type EventType =
   | 'website_click'
   | 'hours_click'
   | 'reservation_click'
+  | 'opentable_click'
+  | 'resy_click'
+  | 'whatsapp_click'
+  | 'tripadvisor_click'
+  | 'instagram_click'
+  | 'facebook_click'
+  | 'twitter_click'
+  | 'yelp_click'
+  | 'email_click'
+  | 'maps_click'
 
 interface TrackingEvent {
   restaurantId: string

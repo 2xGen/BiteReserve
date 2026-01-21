@@ -4,12 +4,12 @@ import Footer from '@/components/Footer'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'BiteReserve - Track Where Your Restaurant Bookings Come From',
-  description: 'Clicks don\'t pay bills — reservations do. Get your free BiteReserve page and start tracking where your guests come from. See which campaigns drive real bookings.',
+  title: 'BiteReserve - Track Where Your Restaurant Guests Come From',
+  description: 'Clicks don\'t pay bills — guest actions do. Get your free BiteReserve page and start tracking where your guests come from. See which campaigns drive high-intent visits.',
   keywords: 'restaurant analytics, booking tracking, reservation analytics, restaurant marketing, campaign tracking, restaurant demand tracking',
   openGraph: {
-    title: 'BiteReserve - Track Where Your Restaurant Bookings Come From',
-    description: 'Clicks don\'t pay bills — reservations do. Get your free BiteReserve page and start tracking where your guests come from.',
+    title: 'BiteReserve - Track Where Your Restaurant Guests Come From',
+    description: 'Clicks don\'t pay bills — guest actions do. Get your free BiteReserve page and start tracking where your guests come from.',
     type: 'website',
     url: 'https://bitereserve.com',
     images: [
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'BiteReserve - Track Where Your Restaurant Bookings Come From',
-    description: 'Clicks don\'t pay bills — reservations do. Get your free BiteReserve page and start tracking where your guests come from.',
+    title: 'BiteReserve - Track Where Your Restaurant Guests Come From',
+    description: 'Clicks don\'t pay bills — guest actions do. Get your free BiteReserve page and start tracking where your guests come from.',
     images: ['https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/og%20image.png'],
   },
   alternates: {
@@ -101,7 +101,7 @@ export default function Home() {
                 </span>
                 <span className="block mb-0.5 sm:mb-1" style={{animationDelay: '0.3s', animationFillMode: 'backwards'}}>
                   <span className="text-white font-black animate-fade-in-scale">restaurant </span>
-                  <span className="text-primary-900 font-black animate-fade-in-scale animate-underline-reveal inline-block relative" style={{animationDelay: '0.4s', textShadow: '0 1px 3px rgba(0,0,0,0.2)'}}>bookings</span>
+                  <span className="text-primary-900 font-black animate-fade-in-scale animate-underline-reveal inline-block relative" style={{animationDelay: '0.4s', textShadow: '0 1px 3px rgba(0,0,0,0.2)'}}>guests</span>
                 </span>
                 <span className="block animate-fade-in-scale" style={{animationDelay: '0.5s', animationFillMode: 'backwards'}}>
                   <span className="text-primary-900 font-black" style={{textShadow: '0 1px 3px rgba(0,0,0,0.2)'}}>come</span>
@@ -111,12 +111,11 @@ export default function Home() {
               
               {/* Punchline - Clean & Bold */}
               <p className="text-lg sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6 animate-fade-in-scale" style={{animationDelay: '0.6s', animationFillMode: 'backwards', textShadow: '0 2px 15px rgba(0,0,0,0.4)'}}>
-                Clicks don't pay bills — <span className="underline decoration-2 sm:decoration-4 decoration-white/50 underline-offset-4">reservations do</span>.
+                Clicks don't pay bills — <span className="underline decoration-2 sm:decoration-4 decoration-white/50 underline-offset-4">guest actions do</span>.
               </p>
               
               <p className="text-base sm:text-xl md:text-2xl text-white/85 mb-5 sm:mb-6 max-w-6xl mx-auto leading-relaxed font-medium animate-fade-in-scale px-1" style={{animationDelay: '0.8s', animationFillMode: 'backwards', textShadow: '0 2px 12px rgba(0,0,0,0.3)'}}>
-                Track calls, directions, clicks, and reservations — see who actually sends guests.
-                <span className="hidden sm:inline"> All on one focused page built just for bookings.</span>
+                Track calls, directions, clicks, and booking attempts — see who actually sends diners, all on one focused customizable page.
               </p>
               
               <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 justify-center mb-5 animate-fade-in-scale" style={{animationDelay: '0.9s', animationFillMode: 'backwards'}}>
@@ -310,56 +309,153 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Trackable Links Section */}
+        <section className="py-10 sm:py-16 bg-white relative overflow-hidden">
+          <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-6 sm:mb-10">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
+                Choose which links to track
+              </h2>
+              <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
+                Track clicks on any of these platforms. All guest actions are measured and shown in your dashboard.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-7 gap-2 sm:gap-4 max-w-5xl mx-auto">
+              {/* OpenTable */}
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                  <img 
+                    src="https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/opentable%20logo.png" 
+                    alt="OpenTable" 
+                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                  />
+                </div>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 text-center">OpenTable</span>
+              </div>
+
+              {/* Resy */}
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                  <img 
+                    src="https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/resy%20logo.png" 
+                    alt="Resy" 
+                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                  />
+                </div>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 text-center">Resy</span>
+              </div>
+
+              {/* WhatsApp */}
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                  <svg className="w-8 h-8 sm:w-10 sm:h-10 text-accent-600" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                </div>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 text-center">WhatsApp</span>
+              </div>
+
+              {/* Instagram */}
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                  <svg className="w-8 h-8 sm:w-10 sm:h-10 text-accent-600" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  </svg>
+                </div>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 text-center">Instagram</span>
+              </div>
+
+              {/* Facebook */}
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                  <svg className="w-8 h-8 sm:w-10 sm:h-10 text-accent-600" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </div>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 text-center">Facebook</span>
+              </div>
+
+              {/* TripAdvisor */}
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                  <img 
+                    src="https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/trip%20advisor.png" 
+                    alt="TripAdvisor" 
+                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                  />
+                </div>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 text-center">TripAdvisor</span>
+              </div>
+
+              {/* Yelp */}
+              <div className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 bg-gray-50 rounded-xl hover:bg-accent-50 transition-colors group">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                  <img 
+                    src="https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/yelp%20logo.png" 
+                    alt="Yelp" 
+                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+                  />
+                </div>
+                <span className="text-xs sm:text-sm font-medium text-gray-700 text-center">Yelp</span>
+              </div>
+            </div>
+            
+            <p className="text-center text-xs sm:text-sm text-gray-500 mt-6 sm:mt-8">
+              Plus phone, email, website, maps, and more
+            </p>
+          </div>
+        </section>
+
         {/* Who It's For - Mobile optimized */}
-        <section className="py-10 sm:py-20 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-purple-50/40 to-blue-50/50"></div>
+        <section className="py-12 sm:py-20 bg-gray-50 relative overflow-hidden">
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-6 sm:mb-12">
-              <h2 className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
                 If your guests come from <span className="text-accent-600">multiple places</span>
               </h2>
-              <p className="text-sm sm:text-lg text-gray-600">You need to know what actually works.</p>
+              <p className="text-base sm:text-lg md:text-xl text-gray-700 font-semibold">You need to know what actually works.</p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl transition-all hover:-translate-y-1 border border-gray-100">
-                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-4 shadow-lg">
-                  <svg className="w-5 h-5 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 border-2 border-gray-100 hover:border-accent-200">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-accent-600 rounded-xl flex items-center justify-center mb-4 sm:mb-6">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h3 className="font-bold text-sm sm:text-lg text-gray-900 mb-0.5 sm:mb-1">Tourist Spots</h3>
-                <p className="text-gray-500 text-xs sm:text-sm hidden sm:block">Track which sources convert.</p>
+                <h3 className="font-bold text-lg sm:text-xl text-gray-900 mb-2">Tourist Spots</h3>
+                <p className="text-gray-600 text-sm sm:text-base">Track which sources convert.</p>
               </div>
               
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl transition-all hover:-translate-y-1 border border-gray-100">
-                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-4 shadow-lg">
-                  <svg className="w-5 h-5 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 border-2 border-gray-100 hover:border-accent-200">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-accent-600 rounded-xl flex items-center justify-center mb-4 sm:mb-6">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                 </div>
-                <h3 className="font-bold text-sm sm:text-lg text-gray-900 mb-0.5 sm:mb-1">Hotel Partners</h3>
-                <p className="text-gray-500 text-xs sm:text-sm hidden sm:block">Prove concierge ROI.</p>
+                <h3 className="font-bold text-lg sm:text-xl text-gray-900 mb-2">Hotel Partners</h3>
+                <p className="text-gray-600 text-sm sm:text-base">Prove concierge ROI.</p>
               </div>
               
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl transition-all hover:-translate-y-1 border border-gray-100">
-                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-4 shadow-lg">
-                  <svg className="w-5 h-5 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 border-2 border-gray-100 hover:border-accent-200">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-accent-600 rounded-xl flex items-center justify-center mb-4 sm:mb-6">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
                 </div>
-                <h3 className="font-bold text-sm sm:text-lg text-gray-900 mb-0.5 sm:mb-1">Fine Dining</h3>
-                <p className="text-gray-500 text-xs sm:text-sm hidden sm:block">Track influencer value.</p>
+                <h3 className="font-bold text-lg sm:text-xl text-gray-900 mb-2">Fine Dining</h3>
+                <p className="text-gray-600 text-sm sm:text-base">Track influencer value.</p>
               </div>
               
-              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md hover:shadow-xl transition-all hover:-translate-y-1 border border-gray-100">
-                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-4 shadow-lg">
-                  <svg className="w-5 h-5 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 border-2 border-gray-100 hover:border-accent-200">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-accent-600 rounded-xl flex items-center justify-center mb-4 sm:mb-6">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </div>
-                <h3 className="font-bold text-sm sm:text-lg text-gray-900 mb-0.5 sm:mb-1">Multi-Location</h3>
-                <p className="text-gray-500 text-xs sm:text-sm hidden sm:block">One dashboard for all.</p>
+                <h3 className="font-bold text-lg sm:text-xl text-gray-900 mb-2">Multi-Location</h3>
+                <p className="text-gray-600 text-sm sm:text-base">One dashboard for all.</p>
               </div>
             </div>
           </div>
@@ -373,7 +469,7 @@ export default function Home() {
               <h2 className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">
                 Start free. Pay when it pays off.
               </h2>
-              <p className="text-sm sm:text-lg text-gray-600">Costs less than a single lost reservation.</p>
+              <p className="text-sm sm:text-lg text-gray-600">Costs less than a single lost guest.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-3xl mx-auto">
@@ -397,6 +493,10 @@ export default function Home() {
                   </li>
                   <li className="flex items-center gap-2 text-gray-700">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    Choose your links to track
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-700">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                     14 days analytics
                   </li>
                 </ul>
@@ -415,7 +515,7 @@ export default function Home() {
                     <div className="text-xs sm:text-sm font-bold text-accent-600">PRO</div>
                     <div className="text-2xl sm:text-3xl font-bold text-gray-900">$29<span className="text-sm sm:text-base font-normal text-gray-500">/mo</span></div>
                   </div>
-                  <span className="text-gray-500 text-xs sm:text-sm">or $290/yr</span>
+                  <span className="text-gray-500 text-xs sm:text-sm">or $290/yr <span className="text-accent-600 font-semibold">(save 2 months)</span></span>
                 </div>
                 <ul className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6 text-xs sm:text-sm">
                   <li className="flex items-center gap-2 text-gray-700">
@@ -428,7 +528,11 @@ export default function Home() {
                   </li>
                   <li className="flex items-center gap-2 text-gray-700">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                    <strong>Unlimited</strong> links
+                    <strong>Unlimited</strong> links & choose which to track
+                  </li>
+                  <li className="flex items-center gap-2 text-gray-700">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    Customize page: logo, banner color, link order
                   </li>
                   <li className="flex items-center gap-2 text-gray-700">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>

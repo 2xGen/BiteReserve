@@ -67,11 +67,11 @@ export async function generateMetadata({
 
   // Fallback metadata
   return {
-    title: 'Reserve Table | BiteReserve',
-    description: 'Reserve your table online. Book restaurant reservations instantly.',
+    title: 'Official Restaurant Page | BiteReserve',
+    description: 'Official restaurant page with tracked guest actions. No commissions.',
     openGraph: {
-      title: 'Reserve Table | BiteReserve',
-      description: 'Reserve your table online. Book restaurant reservations instantly.',
+      title: 'Official Restaurant Page | BiteReserve',
+      description: 'Official restaurant page with tracked guest actions. No commissions.',
       type: 'website',
       images: [
         {

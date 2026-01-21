@@ -12,16 +12,24 @@ export const dynamic = 'force-dynamic'
 interface PendingClaim {
   id: string
   name: string
+  tagline: string | null
   address: string | null
   website: string | null
   phone: string | null
   cuisine: string[] | null
+  features: string[] | null
+  description: string | null
+  price_level: string | null
+  hours: any
+  google_business_profile: string | null
   booking_platform: string | null
-  claim_status: string
+  claim_status: string | null
   created_at: string
   user_id: string
   user_email: string | null
   user_name: string | null
+  user_plan: string
+  country_code: string | null
 }
 
 function AdminClaimsPageContent() {
@@ -118,7 +126,7 @@ function AdminClaimsPageContent() {
     )
   }
 
-  const pendingCount = claims.filter(c => c.claim_status === 'pending').length
+  const pendingCount = claims.filter(c => c.claim_status === 'pending' || c.claim_status === null).length
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
@@ -141,6 +149,12 @@ function AdminClaimsPageContent() {
                 <p className="text-gray-600">Review and approve restaurant claim requests</p>
               </div>
               <div className="flex items-center gap-4">
+                <Link
+                  href="/admin/restaurants"
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  All Restaurants
+                </Link>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setFilter('pending')}
@@ -185,7 +199,7 @@ function AdminClaimsPageContent() {
                 <div
                   key={claim.id}
                   className={`bg-white rounded-xl shadow-md border-2 ${
-                    claim.claim_status === 'pending'
+                    claim.claim_status === 'pending' || claim.claim_status === null
                       ? 'border-amber-200'
                       : claim.claim_status === 'approved'
                       ? 'border-green-200'
@@ -198,22 +212,35 @@ function AdminClaimsPageContent() {
                         <h3 className="text-xl font-bold text-gray-900">{claim.name}</h3>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            claim.claim_status === 'pending'
+                            claim.claim_status === 'pending' || claim.claim_status === null
                               ? 'bg-amber-100 text-amber-800'
                               : claim.claim_status === 'approved'
                               ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
                           }`}
                         >
-                          {claim.claim_status.toUpperCase()}
+                          {(claim.claim_status || 'pending').toUpperCase()}
                         </span>
                       </div>
 
+                      {/* Basic Information */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        {claim.tagline && (
+                          <div className="md:col-span-2">
+                            <p className="text-sm font-semibold text-gray-700 mb-1">Tagline</p>
+                            <p className="text-sm text-gray-600 italic">{claim.tagline}</p>
+                          </div>
+                        )}
                         {claim.address && (
                           <div>
                             <p className="text-sm font-semibold text-gray-700 mb-1">Address</p>
                             <p className="text-sm text-gray-600">{claim.address}</p>
+                          </div>
+                        )}
+                        {claim.country_code && (
+                          <div>
+                            <p className="text-sm font-semibold text-gray-700 mb-1">Country</p>
+                            <p className="text-sm text-gray-600">{claim.country_code.toUpperCase()}</p>
                           </div>
                         )}
                         {claim.website && (
@@ -235,6 +262,12 @@ function AdminClaimsPageContent() {
                             <p className="text-sm text-gray-600">{claim.phone}</p>
                           </div>
                         )}
+                        {claim.price_level && (
+                          <div>
+                            <p className="text-sm font-semibold text-gray-700 mb-1">Price Level</p>
+                            <p className="text-sm text-gray-600">{claim.price_level}</p>
+                          </div>
+                        )}
                         {claim.booking_platform && (
                           <div>
                             <p className="text-sm font-semibold text-gray-700 mb-1">Booking Platform</p>
@@ -247,11 +280,21 @@ function AdminClaimsPageContent() {
                             <p className="text-sm text-gray-600">{claim.cuisine.join(', ')}</p>
                           </div>
                         )}
+                        {claim.features && claim.features.length > 0 && (
+                          <div>
+                            <p className="text-sm font-semibold text-gray-700 mb-1">Features</p>
+                            <p className="text-sm text-gray-600">{claim.features.join(', ')}</p>
+                          </div>
+                        )}
                         <div>
                           <p className="text-sm font-semibold text-gray-700 mb-1">Claimed By</p>
                           <p className="text-sm text-gray-600">
                             {claim.user_name || 'N/A'} ({claim.user_email || 'No email'})
                           </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-1">Plan</p>
+                          <p className="text-sm text-gray-600 capitalize">{claim.user_plan || 'free'}</p>
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-gray-700 mb-1">Submitted</p>
@@ -265,10 +308,63 @@ function AdminClaimsPageContent() {
                             })}
                           </p>
                         </div>
+                        {claim.google_business_profile && (
+                          <div className="md:col-span-2">
+                            <p className="text-sm font-semibold text-gray-700 mb-1">Google Business Profile</p>
+                            <a
+                              href={claim.google_business_profile}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-accent-600 hover:underline break-all"
+                            >
+                              {claim.google_business_profile}
+                            </a>
+                          </div>
+                        )}
                       </div>
+
+                      {/* Opening Hours */}
+                      {claim.hours && typeof claim.hours === 'object' && Object.keys(claim.hours).length > 0 && (
+                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                          <p className="text-sm font-semibold text-gray-700 mb-2">Opening Hours</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {Object.entries(claim.hours).map(([day, hours]) => {
+                              // Handle both string and object formats
+                              let hoursDisplay = ''
+                              if (typeof hours === 'string') {
+                                hoursDisplay = hours
+                              } else if (hours && typeof hours === 'object') {
+                                // If it's an object, try to extract a display value
+                                if ('time' in hours) {
+                                  hoursDisplay = hours.time as string
+                                } else if ('label' in hours) {
+                                  hoursDisplay = hours.label as string
+                                } else {
+                                  hoursDisplay = JSON.stringify(hours)
+                                }
+                              }
+                              
+                              return hoursDisplay ? (
+                                <div key={day} className="flex items-center gap-2">
+                                  <span className="text-xs font-medium text-gray-600 capitalize w-20">{day}:</span>
+                                  <span className="text-xs text-gray-700">{hoursDisplay}</span>
+                                </div>
+                              ) : null
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Description */}
+                      {claim.description && (
+                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                          <p className="text-sm font-semibold text-gray-700 mb-2">Description</p>
+                          <p className="text-sm text-gray-600 whitespace-pre-wrap">{claim.description}</p>
+                        </div>
+                      )}
                     </div>
 
-                    {claim.claim_status === 'pending' && (
+                    {(claim.claim_status === 'pending' || claim.claim_status === null) && (
                       <div className="flex flex-col gap-2">
                         <button
                           onClick={() => handleApprove(claim.id)}

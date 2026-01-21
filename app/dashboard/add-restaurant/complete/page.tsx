@@ -52,6 +52,23 @@ function CompleteAddRestaurantContent() {
       saturday: '',
       sunday: '',
     },
+    businessLinks: {
+      opentable: { url: '', enabled: false },
+      resy: { url: '', enabled: false },
+      whatsapp: { url: '', enabled: false },
+      tripadvisor: { url: '', enabled: false },
+      instagram: { url: '', enabled: false },
+      facebook: { url: '', enabled: false },
+      twitter: { url: '', enabled: false },
+      yelp: { url: '', enabled: false },
+      email: { url: '', enabled: false },
+      phone: { url: '', enabled: false },
+      website: { url: '', enabled: false },
+      maps: { url: '', enabled: false },
+    } as Record<string, { url: string; enabled: boolean }>,
+    whatsappNumber: '',
+    bookingUrl: '',
+    bookingPlatform: '',
   })
 
   useEffect(() => {
@@ -127,7 +144,30 @@ function CompleteAddRestaurantContent() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value }
+      // Auto-update business links when phone/website changes
+      if (name === 'phone' && prev.businessLinks.phone.enabled) {
+        updated.businessLinks = {
+          ...prev.businessLinks,
+          phone: { ...prev.businessLinks.phone, url: value ? `tel:${value}` : '' }
+        }
+      }
+      if (name === 'website' && prev.businessLinks.website.enabled) {
+        updated.businessLinks = {
+          ...prev.businessLinks,
+          website: { ...prev.businessLinks.website, url: value || '' }
+        }
+      }
+      if (name === 'address' && prev.businessLinks.maps.enabled) {
+        const encodedAddress = encodeURIComponent(value)
+        updated.businessLinks = {
+          ...prev.businessLinks,
+          maps: { ...prev.businessLinks.maps, url: value ? `https://maps.google.com/?q=${encodedAddress}` : '' }
+        }
+      }
+      return updated
+    })
   }
 
   const handleHoursChange = (day: string, value: string) => {
@@ -136,6 +176,19 @@ function CompleteAddRestaurantContent() {
       hours: {
         ...prev.hours,
         [day]: value,
+      }
+    }))
+  }
+
+  const handleBusinessLinkChange = (linkType: string, field: 'url' | 'enabled', value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      businessLinks: {
+        ...prev.businessLinks,
+        [linkType]: {
+          ...prev.businessLinks[linkType],
+          [field]: value,
+        }
       }
     }))
   }
@@ -149,6 +202,27 @@ function CompleteAddRestaurantContent() {
       const response = await fetch('/api/restaurants/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // Build business_links object with only enabled links
+        const businessLinks: Record<string, { url: string; enabled: boolean }> = {}
+        Object.entries(formData.businessLinks).forEach(([key, link]) => {
+          if (link.enabled && link.url.trim()) {
+            // Auto-update phone, website, maps links from form fields
+            if (key === 'phone' && formData.phone) {
+              businessLinks[key] = { url: `tel:${formData.phone}`, enabled: true }
+            } else if (key === 'website' && formData.website) {
+              businessLinks[key] = { url: formData.website, enabled: true }
+            } else if (key === 'maps' && formData.address) {
+              // Will be set server-side from address, but we can enable it
+              businessLinks[key] = { url: '', enabled: true }
+            } else {
+              businessLinks[key] = {
+                url: link.url.trim(),
+                enabled: true,
+              }
+            }
+          }
+        })
+
         body: JSON.stringify({
           restaurantId,
           tagline: formData.tagline || null,
@@ -161,6 +235,10 @@ function CompleteAddRestaurantContent() {
           priceLevel: formData.priceLevel || null,
           hours: formData.hours,
           googleBusinessProfile: formData.googleBusinessProfile || null,
+          businessLinks: Object.keys(businessLinks).length > 0 ? businessLinks : null,
+          whatsappNumber: formData.businessLinks.whatsapp.url ? formData.businessLinks.whatsapp.url.replace('https://wa.me/', '').replace(/\D/g, '') : null,
+          bookingUrl: formData.businessLinks.opentable.enabled ? formData.businessLinks.opentable.url : formData.businessLinks.resy.enabled ? formData.businessLinks.resy.url : null,
+          bookingPlatform: formData.businessLinks.opentable.enabled ? 'opentable' : formData.businessLinks.resy.enabled ? 'resy' : null,
         }),
       })
 
@@ -330,6 +408,225 @@ function CompleteAddRestaurantContent() {
                   placeholder="https://yourrestaurant.com"
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors"
                 />
+              </div>
+
+              {/* Business Links Section */}
+              <div className="border-t border-gray-200 pt-6 mt-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Business Card Links</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Choose which links to display on your restaurant listing page. All clicks are tracked.
+                </p>
+                
+                <div className="space-y-4">
+                  {/* Booking Platforms */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Booking & Reservations</label>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.opentable.enabled}
+                          onChange={(e) => handleBusinessLinkChange('opentable', 'enabled', e.target.checked)}
+                          className="mt-1.5 w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">OpenTable</label>
+                          <input
+                            type="url"
+                            value={formData.businessLinks.opentable.url}
+                            onChange={(e) => handleBusinessLinkChange('opentable', 'url', e.target.value)}
+                            placeholder="https://www.opentable.com/..."
+                            disabled={!formData.businessLinks.opentable.enabled}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 disabled:bg-gray-100 disabled:text-gray-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.resy.enabled}
+                          onChange={(e) => handleBusinessLinkChange('resy', 'enabled', e.target.checked)}
+                          className="mt-1.5 w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Resy</label>
+                          <input
+                            type="url"
+                            value={formData.businessLinks.resy.url}
+                            onChange={(e) => handleBusinessLinkChange('resy', 'url', e.target.value)}
+                            placeholder="https://resy.com/..."
+                            disabled={!formData.businessLinks.resy.enabled}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 disabled:bg-gray-100 disabled:text-gray-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.whatsapp.enabled}
+                          onChange={(e) => handleBusinessLinkChange('whatsapp', 'enabled', e.target.checked)}
+                          className="mt-1.5 w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+                          <input
+                            type="text"
+                            value={formData.businessLinks.whatsapp.url}
+                            onChange={(e) => {
+                              const value = e.target.value
+                              const phoneNumber = value.replace(/\D/g, '')
+                              handleBusinessLinkChange('whatsapp', 'url', phoneNumber ? `https://wa.me/${phoneNumber}` : '')
+                            }}
+                            placeholder="Phone number (e.g., +14155550123)"
+                            disabled={!formData.businessLinks.whatsapp.enabled}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 disabled:bg-gray-100 disabled:text-gray-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Social Media */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Social Media</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.instagram.enabled}
+                          onChange={(e) => handleBusinessLinkChange('instagram', 'enabled', e.target.checked)}
+                          className="mt-1.5 w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Instagram</label>
+                          <input
+                            type="url"
+                            value={formData.businessLinks.instagram.url}
+                            onChange={(e) => handleBusinessLinkChange('instagram', 'url', e.target.value)}
+                            placeholder="https://instagram.com/..."
+                            disabled={!formData.businessLinks.instagram.enabled}
+                            className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 disabled:bg-gray-100 disabled:text-gray-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.facebook.enabled}
+                          onChange={(e) => handleBusinessLinkChange('facebook', 'enabled', e.target.checked)}
+                          className="mt-1.5 w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Facebook</label>
+                          <input
+                            type="url"
+                            value={formData.businessLinks.facebook.url}
+                            onChange={(e) => handleBusinessLinkChange('facebook', 'url', e.target.value)}
+                            placeholder="https://facebook.com/..."
+                            disabled={!formData.businessLinks.facebook.enabled}
+                            className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 disabled:bg-gray-100 disabled:text-gray-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.tripadvisor.enabled}
+                          onChange={(e) => handleBusinessLinkChange('tripadvisor', 'enabled', e.target.checked)}
+                          className="mt-1.5 w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-gray-700 mb-1">TripAdvisor</label>
+                          <input
+                            type="url"
+                            value={formData.businessLinks.tripadvisor.url}
+                            onChange={(e) => handleBusinessLinkChange('tripadvisor', 'url', e.target.value)}
+                            placeholder="https://tripadvisor.com/..."
+                            disabled={!formData.businessLinks.tripadvisor.enabled}
+                            className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 disabled:bg-gray-100 disabled:text-gray-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.yelp.enabled}
+                          onChange={(e) => handleBusinessLinkChange('yelp', 'enabled', e.target.checked)}
+                          className="mt-1.5 w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Yelp</label>
+                          <input
+                            type="url"
+                            value={formData.businessLinks.yelp.url}
+                            onChange={(e) => handleBusinessLinkChange('yelp', 'url', e.target.value)}
+                            placeholder="https://yelp.com/..."
+                            disabled={!formData.businessLinks.yelp.enabled}
+                            className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 disabled:bg-gray-100 disabled:text-gray-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact & Basic Links */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Contact & Basic Links</label>
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.phone.enabled}
+                          onChange={(e) => handleBusinessLinkChange('phone', 'enabled', e.target.checked)}
+                          className="w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <label>Phone (auto-filled from phone number above)</label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.website.enabled}
+                          onChange={(e) => handleBusinessLinkChange('website', 'enabled', e.target.checked)}
+                          className="w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <label>Website (auto-filled from website above)</label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.maps.enabled}
+                          onChange={(e) => handleBusinessLinkChange('maps', 'enabled', e.target.checked)}
+                          className="w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <label>Google Maps (auto-filled from address)</label>
+                      </div>
+                      <div className="flex items-start gap-2 mt-3">
+                        <input
+                          type="checkbox"
+                          checked={formData.businessLinks.email.enabled}
+                          onChange={(e) => handleBusinessLinkChange('email', 'enabled', e.target.checked)}
+                          className="mt-1.5 w-4 h-4 text-accent-600 border-gray-300 rounded focus:ring-accent-500"
+                        />
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                          <input
+                            type="email"
+                            value={formData.businessLinks.email.url.replace('mailto:', '')}
+                            onChange={(e) => handleBusinessLinkChange('email', 'url', `mailto:${e.target.value}`)}
+                            placeholder="contact@yourrestaurant.com"
+                            disabled={!formData.businessLinks.email.enabled}
+                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500 disabled:bg-gray-100 disabled:text-gray-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Price Level */}

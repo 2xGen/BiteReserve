@@ -76,7 +76,18 @@ export async function GET(
       websiteClicks: 0,
       hoursClicks: 0,
       reservationClicks: 0,
-      uniqueVisitors: 0
+      uniqueVisitors: 0,
+      // New link types
+      opentableClicks: 0,
+      resyClicks: 0,
+      whatsappClicks: 0,
+      tripadvisorClicks: 0,
+      instagramClicks: 0,
+      facebookClicks: 0,
+      twitterClicks: 0,
+      yelpClicks: 0,
+      emailClicks: 0,
+      mapsClicks: 0,
     }
 
     const chartData: { date: string; pageViews: number; reservations: number }[] = []
@@ -84,12 +95,26 @@ export async function GET(
     if (dailyStats) {
       dailyStats.forEach(day => {
         totals.pageViews += day.page_views || 0
-        totals.phoneClicks += day.phone_clicks || 0
-        totals.addressClicks += day.address_clicks || 0
-        totals.websiteClicks += day.website_clicks || 0
-        totals.hoursClicks += day.hours_clicks || 0
+        totals.hoursClicks += day.hours_views || 0
         totals.reservationClicks += day.reservation_clicks || 0
         totals.uniqueVisitors += day.unique_visitors || 0
+        
+        // New link click types from daily_stats (fast aggregated data)
+        totals.phoneClicks += day.phone_clicks || 0
+        totals.mapsClicks += day.maps_clicks || 0
+        totals.websiteClicks += day.website_clicks || 0
+        totals.opentableClicks += day.opentable_clicks || 0
+        totals.resyClicks += day.resy_clicks || 0
+        totals.whatsappClicks += day.whatsapp_clicks || 0
+        totals.tripadvisorClicks += day.tripadvisor_clicks || 0
+        totals.instagramClicks += day.instagram_clicks || 0
+        totals.facebookClicks += day.facebook_clicks || 0
+        totals.twitterClicks += day.twitter_clicks || 0
+        totals.yelpClicks += day.yelp_clicks || 0
+        totals.emailClicks += day.email_clicks || 0
+        
+        // Backward compatibility: maps_clicks also counts as addressClicks
+        totals.addressClicks += day.maps_clicks || 0
 
         chartData.push({
           date: day.date,

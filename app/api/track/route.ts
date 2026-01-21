@@ -53,7 +53,17 @@ export async function POST(request: NextRequest) {
       'address_click',
       'website_click',
       'hours_click',
-      'reservation_click'
+      'reservation_click',
+      'opentable_click',
+      'resy_click',
+      'whatsapp_click',
+      'tripadvisor_click',
+      'instagram_click',
+      'facebook_click',
+      'twitter_click',
+      'yelp_click',
+      'email_click',
+      'maps_click',
     ]
     if (!validEventTypes.includes(eventType)) {
       return NextResponse.json(
@@ -74,10 +84,32 @@ export async function POST(request: NextRequest) {
     const ipHash = await hashIP(ip, supabaseKey)
     const deviceType = getDeviceType(userAgent)
 
+    // Determine if this is an action (counts toward monthly limit)
+    // Actions: phone clicks, address reveals, website reveals, booking clicks, social clicks
+    // Non-actions: page views, hours views
+    const actionEventTypes = [
+      'phone_click',
+      'address_click',
+      'website_click',
+      'reservation_click',
+      'opentable_click',
+      'resy_click',
+      'whatsapp_click',
+      'tripadvisor_click',
+      'instagram_click',
+      'facebook_click',
+      'twitter_click',
+      'yelp_click',
+      'email_click',
+      'maps_click',
+    ]
+    const isAction = actionEventTypes.includes(eventType)
+
     // Insert event (fire and forget pattern for speed)
     const { error } = await supabase.from('analytics_events').insert({
       restaurant_id: restaurantId,
       event_type: eventType,
+      is_action: isAction,
       source: source || null,
       campaign: campaign || null,
       referrer: referrer || null,

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { trackEvent, trackPageView } from '@/lib/tracking'
 import { generateRestaurantSchema } from '@/lib/schema-org'
+import BusinessCardLinks, { Section1HeroButtons } from '@/components/BusinessCardLinks'
 
 interface Restaurant {
   id: string
@@ -23,14 +24,13 @@ interface Restaurant {
   hours: Record<string, string> | Array<{days?: string[] | string, time?: string, label?: string, day?: string}> | null
   booking_url: string | null
   booking_platform: string | null
+  whatsapp_number: string | null
+  business_links: Record<string, { url: string; enabled?: boolean; label?: string; order?: number }> | null
+  logo_url: string | null
+  cover_banner_color: string | null
   is_claimed: boolean
   country_code: string
   restaurant_number: string
-  reservation_form_enabled: boolean
-  reservation_email_verified: boolean
-  reservation_whatsapp_verified: boolean
-  reservation_min_advance_hours: number
-  reservation_delivery_method: string
 }
 
 export default function RestaurantPage() {
@@ -46,18 +46,6 @@ export default function RestaurantPage() {
   const [showAddress, setShowAddress] = useState(false)
   const [showWebsite, setShowWebsite] = useState(false)
   const [showHoursDropdown, setShowHoursDropdown] = useState(false)
-  
-  const [formData, setFormData] = useState({
-    date: '',
-    time: '',
-    partySize: '',
-    name: '',
-    email: '',
-    phone: '',
-    specialRequests: '',
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
   // Fetch restaurant data
   useEffect(() => {
@@ -105,7 +93,21 @@ export default function RestaurantPage() {
           return
         }
 
-        setRestaurant(data.restaurant)
+        // Ensure business_links is parsed if it comes as a string
+        const restaurant = data.restaurant
+        if (restaurant.business_links && typeof restaurant.business_links === 'string') {
+          try {
+            restaurant.business_links = JSON.parse(restaurant.business_links)
+          } catch (e) {
+            restaurant.business_links = {}
+          }
+        }
+        // If business_links is null or empty object, set to null for fallback logic
+        if (restaurant.business_links && Object.keys(restaurant.business_links).length === 0) {
+          restaurant.business_links = null
+        }
+        
+        setRestaurant(restaurant)
         
         // Track page view (silent)
         if (data.restaurant.id) {
@@ -195,72 +197,6 @@ export default function RestaurantPage() {
     setShowHoursDropdown(!showHoursDropdown)
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!restaurant) return
-
-    setIsSubmitting(true)
-    setSubmitStatus('idle')
-
-    try {
-      // Get source and campaign from URL params
-      const urlParams = new URLSearchParams(window.location.search)
-      const source = urlParams.get('source') || urlParams.get('ref') || null
-      const campaign = urlParams.get('campaign') || urlParams.get('ref') || null
-
-      // Validate minimum advance time
-      const requestedDateTime = new Date(`${formData.date}T${formData.time}`)
-      const now = new Date()
-      const hoursInAdvance = (requestedDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
-      const minHours = restaurant.reservation_min_advance_hours || 24
-
-      if (hoursInAdvance < minHours) {
-        alert(`Reservations must be made at least ${minHours} hours in advance`)
-        setSubmitStatus('error')
-        setIsSubmitting(false)
-        return
-      }
-
-      const response = await fetch('/api/reservations/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          restaurantId: restaurant.id,
-          date: formData.date,
-          time: formData.time,
-          partySize: formData.partySize,
-          guestName: formData.name,
-          guestEmail: formData.email,
-          guestPhone: formData.phone,
-          specialRequests: formData.specialRequests || null,
-          source,
-          campaign,
-        }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to submit reservation')
-      }
-
-      trackEvent(restaurant.id, 'reservation_click')
-      setSubmitStatus('success')
-      setFormData({
-        date: '', time: '', partySize: '', name: '', email: '', phone: '', specialRequests: '',
-      })
-    } catch (error) {
-      console.error('Reservation submission error:', error)
-      setSubmitStatus('error')
-      alert(error instanceof Error ? error.message : 'Failed to submit reservation. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
   // Loading state
   if (loading) {
@@ -381,26 +317,50 @@ export default function RestaurantPage() {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
   const isOpen = hours[today] ? true : false // Simple check - could be enhanced
 
+  const accentColor = restaurant.cover_banner_color || '#059669'
+
   return (
     <div className="min-h-screen bg-gray-50 pt-10 sm:pt-12">
-        {/* Main Content */}
+      {/* Main Content */}
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-8 md:py-12">
         {/* Restaurant Header */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-10 mb-4 sm:mb-6">
+        <div 
+          className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 p-4 sm:p-6 md:p-10 mb-4 sm:mb-6"
+          style={{ 
+            boxShadow: `0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06), 0 8px 16px -4px ${accentColor}40, 0 4px 8px -2px ${accentColor}30`
+          }}
+        >
           {/* Cuisine Tags */}
           {restaurant.cuisine && restaurant.cuisine.length > 0 && (
             <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
               {restaurant.cuisine.map((c, i) => (
-                <span key={i} className="px-2 sm:px-3 py-0.5 sm:py-1 bg-accent-100 text-accent-700 text-xs sm:text-sm font-semibold rounded-full">
+                <span 
+                  key={i} 
+                  className="px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm font-semibold rounded-full"
+                  style={{
+                    backgroundColor: `${accentColor}15`,
+                    color: accentColor
+                  }}
+                >
                   {c}
                 </span>
               ))}
             </div>
           )}
           
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 mb-1 sm:mb-2">
-            {restaurant.name}
-          </h1>
+          <div className="flex items-center justify-between gap-4 mb-1 sm:mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 flex-1">
+              {restaurant.name}
+            </h1>
+            {restaurant.logo_url && (
+              <img 
+                src={restaurant.logo_url} 
+                alt={`${restaurant.name} logo`}
+                className="h-12 sm:h-16 md:h-20 w-auto object-contain flex-shrink-0"
+                loading="lazy"
+              />
+            )}
+          </div>
           {restaurant.tagline && (
             <p className="text-base sm:text-lg md:text-xl text-gray-600 font-medium mb-4 sm:mb-6">{restaurant.tagline}</p>
           )}
@@ -486,81 +446,19 @@ export default function RestaurantPage() {
             )}
           </div>
 
-          {/* HERO CTA BUTTONS */}
-          <div className="grid grid-cols-4 gap-2 sm:gap-3 mt-4 sm:mt-6">
-            {/* Call Button */}
-            {restaurant.phone && (
-              <button
-                onClick={handleRevealPhone}
-                className={`flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 ${
-                  showPhone 
-                    ? 'bg-green-500 text-white' 
-                    : 'bg-green-50 hover:bg-green-100 text-green-700 active:scale-95 sm:hover:scale-105'
-                }`}
-              >
-                <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-1 sm:mb-2 ${showPhone ? 'bg-white/20' : 'bg-green-100'}`}>
-                  <svg className={`w-4 h-4 sm:w-6 sm:h-6 ${showPhone ? 'text-white' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                </div>
-                <span className="font-bold text-xs sm:text-sm">Call</span>
-              </button>
-            )}
-
-            {/* Directions Button */}
-            {restaurant.address && (
-              <button
-                onClick={handleRevealAddress}
-                className={`flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 ${
-                  showAddress 
-                    ? 'bg-purple-500 text-white' 
-                    : 'bg-purple-50 hover:bg-purple-100 text-purple-700 active:scale-95 sm:hover:scale-105'
-                }`}
-              >
-                <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-1 sm:mb-2 ${showAddress ? 'bg-white/20' : 'bg-purple-100'}`}>
-                  <svg className={`w-4 h-4 sm:w-6 sm:h-6 ${showAddress ? 'text-white' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <span className="font-bold text-xs sm:text-sm">Map</span>
-              </button>
-            )}
-
-            {/* Website Button */}
-            {restaurant.website && (
-              <button
-                onClick={handleRevealWebsite}
-                className={`flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg sm:rounded-xl transition-all duration-300 ${
-                  showWebsite 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-blue-50 hover:bg-blue-100 text-blue-700 active:scale-95 sm:hover:scale-105'
-                }`}
-              >
-                <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-1 sm:mb-2 ${showWebsite ? 'bg-white/20' : 'bg-blue-100'}`}>
-                  <svg className={`w-4 h-4 sm:w-6 sm:h-6 ${showWebsite ? 'text-white' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                  </svg>
-                </div>
-                <span className="font-bold text-xs sm:text-sm">Web</span>
-              </button>
-            )}
-
-            {/* Reserve Button - Only show if reservation form is enabled */}
-            {restaurant.reservation_form_enabled && (
-              <a
-                href="#reserve"
-                className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg sm:rounded-xl bg-accent-500 hover:bg-accent-600 text-white transition-all duration-300 active:scale-95 sm:hover:scale-105"
-              >
-                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center mb-1 sm:mb-2">
-                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <span className="font-bold text-xs sm:text-sm">Book</span>
-              </a>
-            )}
-          </div>
+          {/* HERO CTA BUTTONS - Section 1 */}
+          <Section1HeroButtons
+            restaurantId={restaurant.id}
+            businessLinks={restaurant.business_links}
+            phone={restaurant.phone}
+            website={restaurant.website}
+            googleMapsUrl={restaurant.google_maps_url}
+            bookingUrl={restaurant.booking_url}
+            bookingPlatform={restaurant.booking_platform}
+            onPhoneClick={handleRevealPhone}
+            onAddressClick={handleRevealAddress}
+            onWebsiteClick={handleRevealWebsite}
+          />
 
           {/* Revealed Phone Number */}
           {showPhone && restaurant.phone && (
@@ -644,176 +542,17 @@ export default function RestaurantPage() {
           )}
         </div>
 
-        {/* Reservation Form Section - Only if enabled */}
-        {restaurant.reservation_form_enabled && (
-          <div id="reserve" className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-10">
-            <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-8">
-              <div className="w-10 h-10 sm:w-14 sm:h-14 bg-accent-100 rounded-lg sm:rounded-xl flex items-center justify-center">
-                <svg className="w-5 h-5 sm:w-7 sm:h-7 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Request a Table</h2>
-                <p className="text-gray-500 text-xs sm:text-base">The restaurant will respond directly</p>
-              </div>
-            </div>
-
-            {submitStatus === 'success' && (
-              <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg sm:rounded-xl">
-                <div className="flex items-center gap-2 text-green-700 font-semibold mb-1 text-sm sm:text-base">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  Request Submitted!
-                </div>
-                <p className="text-xs sm:text-sm text-green-600">The restaurant will respond to your email.</p>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6">
-              <div className="space-y-3 sm:space-y-4">
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Date *</label>
-                    <input
-                      type="date"
-                      name="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      required
-                      min={(() => {
-                        const minDate = new Date()
-                        const minHours = restaurant.reservation_min_advance_hours || 24
-                        minDate.setHours(minDate.getHours() + minHours)
-                        return minDate.toISOString().split('T')[0]
-                      })()}
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
-                    />
-                    {restaurant.reservation_min_advance_hours && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Book at least {restaurant.reservation_min_advance_hours === 24 ? '24 hours' : restaurant.reservation_min_advance_hours === 48 ? '48 hours' : restaurant.reservation_min_advance_hours === 72 ? '3 days' : '1 week'} in advance
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Time *</label>
-                    <input
-                      type="time"
-                      name="time"
-                      value={formData.time}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Party Size *</label>
-                  <select
-                    name="partySize"
-                    value={formData.partySize}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 bg-white text-sm sm:text-base"
-                  >
-                    <option value="">Select guests</option>
-                    {[1,2,3,4,5,6,7,8].map(n => (
-                      <option key={n} value={n}>{n} {n === 1 ? 'guest' : 'guests'}</option>
-                    ))}
-                    <option value="9+">9+ guests</option>
-                  </select>
-                </div>
-
-                <div className="hidden sm:block">
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Special Requests</label>
-                  <textarea
-                    name="specialRequests"
-                    value={formData.specialRequests}
-                    onChange={handleChange}
-                    rows={4}
-                    placeholder="Any dietary restrictions or special occasions?"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 resize-none text-sm sm:text-base"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Name *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    placeholder="Your full name"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Email *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="your@email.com"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Phone *</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    placeholder="+1 (555) 000-0000"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
-                  />
-                </div>
-
-                <div className="sm:hidden">
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">Special Requests</label>
-                  <textarea
-                    name="specialRequests"
-                    value={formData.specialRequests}
-                    onChange={handleChange}
-                    rows={3}
-                    placeholder="Any dietary restrictions?"
-                    className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 resize-none text-sm"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3 sm:py-4 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-bold text-base sm:text-lg rounded-lg sm:rounded-xl transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl active:scale-[0.98] sm:hover:-translate-y-0.5 mt-1 sm:mt-2"
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                      </svg>
-                      Sending...
-                    </span>
-                  ) : 'Request Reservation'}
-                </button>
-
-                <p className="text-[10px] sm:text-xs text-center text-gray-500">
-                  Your info is only shared with the restaurant.
-                </p>
-              </div>
-            </form>
-          </div>
-        )}
+        {/* Business Card Links */}
+        <BusinessCardLinks
+          restaurantId={restaurant.id}
+          businessLinks={restaurant.business_links}
+          phone={restaurant.phone}
+          website={restaurant.website}
+          googleMapsUrl={restaurant.google_maps_url}
+          whatsappNumber={restaurant.whatsapp_number}
+          bookingUrl={restaurant.booking_url}
+          bookingPlatform={restaurant.booking_platform}
+        />
 
         {/* Powered By */}
         <div className="mt-6 sm:mt-8 text-center">
@@ -842,7 +581,7 @@ export default function RestaurantPage() {
             Want a page like this?
           </h2>
           <p className="text-white/80 mb-2 sm:mb-3 text-sm sm:text-base">
-            Get your own reservation page with full tracking.
+            Get your own listing page with full tracking.
           </p>
           <p className="text-white/70 mb-4 sm:mb-6 text-xs sm:text-sm max-w-2xl mx-auto">
             BiteReserve — A demand-tracking platform for restaurants, designed to capture high-intent diners at the moment of decision.

@@ -30,6 +30,12 @@ export async function POST(request: NextRequest) {
       priceLevel,
       hours,
       googleBusinessProfile,
+      businessLinks,
+      logoUrl,
+      coverBannerColor,
+      whatsappNumber,
+      bookingUrl,
+      bookingPlatform,
     } = body
 
     if (!restaurantId) {
@@ -51,6 +57,26 @@ export async function POST(request: NextRequest) {
     if (priceLevel !== undefined) updateData.price_level = priceLevel
     if (hours !== undefined) updateData.hours = hours
     if (googleBusinessProfile !== undefined) updateData.google_business_profile = googleBusinessProfile
+    if (businessLinks !== undefined) {
+      // Update phone, website, maps links if enabled
+      if (businessLinks.phone?.enabled && phone) {
+        businessLinks.phone.url = `tel:${phone}`
+      }
+      if (businessLinks.website?.enabled && website) {
+        businessLinks.website.url = website
+      }
+      if (businessLinks.maps?.enabled && address) {
+        // Generate Google Maps URL from address
+        const encodedAddress = encodeURIComponent(address)
+        businessLinks.maps.url = `https://maps.google.com/?q=${encodedAddress}`
+      }
+      updateData.business_links = businessLinks
+    }
+    if (logoUrl !== undefined) updateData.logo_url = logoUrl
+    if (coverBannerColor !== undefined) updateData.cover_banner_color = coverBannerColor
+    if (whatsappNumber !== undefined) updateData.whatsapp_number = whatsappNumber
+    if (bookingUrl !== undefined) updateData.booking_url = bookingUrl
+    if (bookingPlatform !== undefined) updateData.booking_platform = bookingPlatform
 
     const { error } = await supabase
       .from('restaurants')

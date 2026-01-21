@@ -102,6 +102,7 @@ function DashboardContent() {
   const [newLink, setNewLink] = useState({ name: '', type: 'hotel' })
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [subscription, setSubscription] = useState<any>(null)
+  const [businessLinks, setBusinessLinks] = useState<any>(null)
 
   useEffect(() => {
     if (user) {
@@ -133,8 +134,27 @@ function DashboardContent() {
     if (selectedRestaurant) {
       fetchAnalytics()
       fetchCampaignLinks()
+      fetchBusinessLinks()
     }
   }, [selectedRestaurant, selectedPeriod])
+
+  const fetchBusinessLinks = async () => {
+    if (!selectedRestaurant) return
+
+    try {
+      const { data, error } = await supabase
+        .from('restaurants')
+        .select('business_links')
+        .eq('id', selectedRestaurant)
+        .single()
+
+      if (error) throw error
+      setBusinessLinks(data?.business_links || null)
+    } catch (error) {
+      console.error('Error fetching business links:', error)
+      setBusinessLinks(null)
+    }
+  }
 
   const fetchRestaurants = async () => {
     if (!user) return
@@ -377,7 +397,7 @@ function DashboardContent() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-3">No Restaurants Yet</h2>
               <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                Claim your first restaurant to start tracking where your bookings come from and see real demand insights.
+                Claim your first restaurant to start tracking where your guests come from and see real demand insights.
               </p>
               <Link
                 href="/claim"
@@ -549,7 +569,7 @@ function DashboardContent() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">{analyticsData.totals?.pageViews?.toLocaleString() || '0'}</p>
+                    <p className="text-2xl font-bold text-gray-900">{analyticsData.totals?.pageViews?.toLocaleString('en-US') || '0'}</p>
                   </div>
 
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
@@ -569,7 +589,7 @@ function DashboardContent() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">{analyticsData.totals?.reservationClicks?.toLocaleString() || '0'}</p>
+                    <p className="text-2xl font-bold text-gray-900">{analyticsData.totals?.reservationClicks?.toLocaleString('en-US') || '0'}</p>
                   </div>
 
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
@@ -588,12 +608,73 @@ function DashboardContent() {
                 </div>
               )}
 
+              {/* Tracked Links - Dynamic based on business_links */}
+              {analyticsData && businessLinks && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Tracked Guest Actions</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {Object.entries(businessLinks).map(([type, link]: [string, any]) => {
+                      if (!link || link.enabled === false || !link.url) return null
+                      
+                      const linkLabels: Record<string, string> = {
+                        phone: 'Phone',
+                        maps: 'Maps',
+                        website: 'Website',
+                        opentable: 'OpenTable',
+                        resy: 'Resy',
+                        whatsapp: 'WhatsApp',
+                        tripadvisor: 'TripAdvisor',
+                        instagram: 'Instagram',
+                        facebook: 'Facebook',
+                        twitter: 'Twitter',
+                        yelp: 'Yelp',
+                        email: 'Email',
+                      }
+                      
+                      const clickCounts: Record<string, string> = {
+                        phone: 'phoneClicks',
+                        maps: 'mapsClicks',
+                        website: 'websiteClicks',
+                        opentable: 'opentableClicks',
+                        resy: 'resyClicks',
+                        whatsapp: 'whatsappClicks',
+                        tripadvisor: 'tripadvisorClicks',
+                        instagram: 'instagramClicks',
+                        facebook: 'facebookClicks',
+                        twitter: 'twitterClicks',
+                        yelp: 'yelpClicks',
+                        email: 'emailClicks',
+                      }
+                      
+                      const countKey = clickCounts[type]
+                      const count = analyticsData.totals?.[countKey] || 0
+                      const label = link.label || linkLabels[type] || type
+                      
+                      return (
+                        <div key={type} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div className="text-sm font-medium text-gray-600 mb-1">{label}</div>
+                          <div className="text-2xl font-bold text-gray-900">{count.toLocaleString('en-US')}</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {Object.keys(businessLinks).filter((type) => {
+                    const link = businessLinks[type]
+                    return link && link.enabled !== false && link.url
+                  }).length === 0 && (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      No links configured yet. <Link href={`/dashboard/edit?id=${selectedRestaurant}`} className="text-accent-600 hover:underline">Configure your links</Link>
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Chart and Sources */}
               {analyticsData && (
                 <div className="grid lg:grid-cols-3 gap-6 mb-6">
                   {/* Chart */}
                   <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Traffic & Bookings</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Traffic & Guest Actions</h3>
                     {analyticsData.chartData && analyticsData.chartData.length > 0 ? (
                       <div className="h-64 flex items-end justify-between gap-1">
                         {analyticsData.chartData.map((point: any, i: number) => {
@@ -714,7 +795,7 @@ function DashboardContent() {
                                   <p className="font-bold text-gray-900">{link.clicks || 0}</p>
                                 </div>
                                 <div>
-                                  <span className="text-gray-500">Bookings</span>
+                                  <span className="text-gray-500">Booking Attempts</span>
                                   <p className="font-bold text-accent-600">{link.reservations || 0}</p>
                                 </div>
                                 <div>
@@ -803,7 +884,7 @@ function DashboardContent() {
                                       </button>
                                     </div>
                                   </td>
-                                  <td className="px-6 py-4 text-center font-bold text-gray-900">{link.clicks?.toLocaleString() || 0}</td>
+                                  <td className="px-6 py-4 text-center font-bold text-gray-900">{link.clicks?.toLocaleString('en-US') || 0}</td>
                                   <td className="px-6 py-4 text-center font-bold text-accent-600">{link.reservations || 0}</td>
                                   <td className="px-6 py-4 text-center">
                                     <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${

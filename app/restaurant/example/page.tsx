@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import BusinessCardLinks from '@/components/BusinessCardLinks'
 
 // Mock restaurant data (would come from Google Places API)
 const restaurant = {
+  id: 'demo-restaurant-id',
   name: 'La Terrazza del Mare',
   tagline: 'Authentic Italian Coastal Cuisine',
   rating: 4.7,
@@ -26,6 +28,18 @@ const restaurant = {
   },
   features: ['Outdoor Seating', 'Ocean View', 'Private Dining', 'Full Bar', 'Valet Parking'],
   description: 'Experience the essence of Italian coastal dining at La Terrazza del Mare. Our chef brings authentic recipes from the Amalfi Coast, featuring the freshest seafood and handmade pasta. Enjoy breathtaking views of the San Francisco Bay while savoring dishes crafted with passion and tradition.',
+  logo_url: 'https://kehkusooulqikkswqqnx.supabase.co/storage/v1/object/public/Images/demo%20logo.png', // Demo logo
+  cover_banner_color: '#059669', // Demo banner color (accent-600)
+  business_links: {
+    opentable: { url: 'https://www.opentable.com/r/la-terrazza-del-mare-san-francisco', enabled: true, label: 'Book on OpenTable', order: 1 },
+    whatsapp: { url: 'https://wa.me/14155550123', enabled: true, label: 'Message on WhatsApp', order: 2 },
+    instagram: { url: 'https://instagram.com/laterrazzadelmare', enabled: true, label: 'Follow on Instagram', order: 3 },
+    facebook: { url: 'https://facebook.com/laterrazzadelmare', enabled: true, label: 'Follow on Facebook', order: 4 },
+    tripadvisor: { url: 'https://tripadvisor.com/restaurant/...', enabled: true, label: 'View on TripAdvisor', order: 5 },
+    phone: { url: 'tel:+14155550123', enabled: true, label: 'Call Us', order: 6 },
+    website: { url: 'https://laterrazzadelmare.com', enabled: true, label: 'Visit Website', order: 7 },
+    maps: { url: 'https://maps.google.com/?q=La+Terrazza+del+Mare+San+Francisco', enabled: true, label: 'View on Map', order: 8 },
+  },
 }
 
 // Demo analytics data
@@ -35,7 +49,18 @@ const initialAnalytics = {
   addressClicks: 156,
   websiteClicks: 234,
   hoursClicks: 45,
-  reservationRequests: 67,
+}
+
+// Helper function to convert hex to RGB
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null
 }
 
 export default function ExampleRestaurantPage() {
@@ -46,18 +71,9 @@ export default function ExampleRestaurantPage() {
   const [showAddress, setShowAddress] = useState(false)
   const [showWebsite, setShowWebsite] = useState(false)
   const [showHoursDropdown, setShowHoursDropdown] = useState(false)
+  const [selectedColor, setSelectedColor] = useState(restaurant.cover_banner_color || '#059669')
+  const [showColorPicker, setShowColorPicker] = useState(false)
   
-  const [formData, setFormData] = useState({
-    date: '',
-    time: '',
-    partySize: '',
-    name: '',
-    email: '',
-    phone: '',
-    specialRequests: '',
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
   // Simulate real-time page view on mount
   useEffect(() => {
@@ -104,29 +120,6 @@ export default function ExampleRestaurantPage() {
     setShowHoursDropdown(!showHoursDropdown)
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setSubmitStatus('idle')
-
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      trackEvent('reservationRequests', 'Reservation Request')
-      setSubmitStatus('success')
-      setFormData({
-        date: '', time: '', partySize: '', name: '', email: '', phone: '', specialRequests: '',
-      })
-    } catch {
-      setSubmitStatus('error')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as keyof typeof restaurant.hours
 
@@ -213,10 +206,6 @@ export default function ExampleRestaurantPage() {
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full"></div>
                 <span className="font-bold text-gray-900">{analytics.websiteClicks}</span>
               </div>
-              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-accent-500 rounded-full"></div>
-                <span className="font-bold text-gray-900">{analytics.reservationRequests}</span>
-              </div>
             </div>
           </div>
         </div>
@@ -225,18 +214,106 @@ export default function ExampleRestaurantPage() {
       {/* Main Content */}
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-8 md:py-12">
         {/* Restaurant Header */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-10 mb-4 sm:mb-6">
+        <div 
+          className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 p-4 sm:p-6 md:p-10 mb-4 sm:mb-6 relative"
+          style={{ 
+            boxShadow: `0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06), 0 8px 16px -4px ${selectedColor}40, 0 4px 8px -2px ${selectedColor}30`
+          }}
+        >
+          {/* Color Picker Button - Demo Only */}
+          <button
+            onClick={() => setShowColorPicker(!showColorPicker)}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors group"
+            title="Change page accent color (Demo)"
+          >
+            <svg className="w-5 h-5 text-gray-600 group-hover:text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            </svg>
+          </button>
+
+          {/* Color Picker Dropdown */}
+          {showColorPicker && (
+            <>
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setShowColorPicker(false)}
+              />
+              <div className="absolute top-16 right-4 sm:top-20 sm:right-6 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 z-50 w-[280px]">
+                <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-100">
+                  <svg className="w-5 h-5 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                  <h3 className="font-bold text-gray-900 text-sm">Page Accent Color</h3>
+                </div>
+                <p className="text-xs text-gray-600 mb-3">
+                  Match the page with your brand color
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { name: 'Emerald', value: '#059669' },
+                    { name: 'Navy', value: '#1E3A8A' },
+                    { name: 'Burgundy', value: '#7F1D1D' },
+                    { name: 'Slate', value: '#475569' },
+                  ].map((color) => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      onClick={() => {
+                        setSelectedColor(color.value)
+                        setShowColorPicker(false)
+                      }}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                        selectedColor === color.value
+                          ? 'border-accent-600 ring-2 ring-accent-200 bg-accent-50'
+                          : 'border-gray-300 hover:border-gray-400 bg-white'
+                      }`}
+                    >
+                      <div
+                        className="w-10 h-10 rounded-lg border-2 border-gray-200"
+                        style={{ backgroundColor: color.value }}
+                      />
+                      <span className={`text-xs font-medium ${
+                        selectedColor === color.value ? 'text-accent-700' : 'text-gray-600'
+                      }`}>
+                        {color.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-gray-100">
+                  This color affects the shadow accent and cuisine tags
+                </p>
+              </div>
+            </>
+          )}
           <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
             {restaurant.cuisine.map((c, i) => (
-              <span key={i} className="px-2 sm:px-3 py-0.5 sm:py-1 bg-accent-100 text-accent-700 text-xs sm:text-sm font-semibold rounded-full">
+              <span 
+                key={i} 
+                className="px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm font-semibold rounded-full"
+                style={{
+                  backgroundColor: `${selectedColor}15`,
+                  color: selectedColor
+                }}
+              >
                 {c}
               </span>
             ))}
           </div>
           
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 mb-1 sm:mb-2">
-            {restaurant.name}
-          </h1>
+          <div className="flex items-center justify-between gap-4 mb-1 sm:mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 flex-1">
+              {restaurant.name}
+            </h1>
+            {restaurant.logo_url && (
+              <img 
+                src={restaurant.logo_url} 
+                alt={`${restaurant.name} logo`}
+                className="h-12 sm:h-16 md:h-20 w-auto object-contain flex-shrink-0"
+                loading="lazy"
+              />
+            )}
+          </div>
           <p className="text-base sm:text-lg md:text-xl text-gray-600 font-medium mb-4 sm:mb-6">{restaurant.tagline}</p>
 
           {/* Quick Stats */}
@@ -452,165 +529,17 @@ export default function ExampleRestaurantPage() {
           </div>
         </div>
 
-        {/* Reservation Form Section */}
-        <div id="reserve" className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-10">
-          <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-8">
-            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-accent-100 rounded-lg sm:rounded-xl flex items-center justify-center">
-              <svg className="w-5 h-5 sm:w-7 sm:h-7 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Request a Table</h2>
-              <p className="text-gray-500 text-xs sm:text-base">The restaurant will respond directly</p>
-            </div>
-          </div>
-
-          {submitStatus === 'success' && (
-            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg sm:rounded-xl">
-              <div className="flex items-center gap-2 text-green-700 font-semibold mb-1 text-sm sm:text-base">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                Request Submitted!
-              </div>
-              <p className="text-xs sm:text-sm text-green-600">The restaurant will respond to your email.</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6">
-            <div className="space-y-3 sm:space-y-4">
-              <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Date *</label>
-                  <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    required
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Time *</label>
-                  <input
-                    type="time"
-                    name="time"
-                    value={formData.time}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Party Size *</label>
-                <select
-                  name="partySize"
-                  value={formData.partySize}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 bg-white text-sm sm:text-base"
-                >
-                  <option value="">Select guests</option>
-                  {[1,2,3,4,5,6,7,8].map(n => (
-                    <option key={n} value={n}>{n} {n === 1 ? 'guest' : 'guests'}</option>
-                  ))}
-                  <option value="9+">9+ guests</option>
-                </select>
-              </div>
-
-              <div className="hidden sm:block">
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Special Requests</label>
-                <textarea
-                  name="specialRequests"
-                  value={formData.specialRequests}
-                  onChange={handleChange}
-                  rows={4}
-                  placeholder="Any dietary restrictions or special occasions?"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 resize-none text-sm sm:text-base"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  placeholder="Your full name"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Email *</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="your@email.com"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1">Phone *</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
-                  placeholder="+1 (555) 000-0000"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 text-sm sm:text-base"
-                />
-              </div>
-
-              {/* Mobile-only special requests */}
-              <div className="sm:hidden">
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Special Requests</label>
-                <textarea
-                  name="specialRequests"
-                  value={formData.specialRequests}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="Any dietary restrictions?"
-                  className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 text-gray-900 resize-none text-sm"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 sm:py-4 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-bold text-base sm:text-lg rounded-lg sm:rounded-xl transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl active:scale-[0.98] sm:hover:-translate-y-0.5 mt-1 sm:mt-2"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                    Sending...
-                  </span>
-                ) : 'Request Reservation'}
-              </button>
-
-              <p className="text-[10px] sm:text-xs text-center text-gray-500">
-                Your info is only shared with the restaurant.
-              </p>
-            </div>
-          </form>
-        </div>
+        {/* Business Card Links */}
+        <BusinessCardLinks
+          restaurantId={restaurant.id}
+          businessLinks={restaurant.business_links}
+          phone={restaurant.phone}
+          website={restaurant.website}
+          googleMapsUrl={restaurant.googleMapsUrl}
+          whatsappNumber={null}
+          bookingUrl={null}
+          bookingPlatform={null}
+        />
 
         {/* Powered By */}
         <div className="mt-6 sm:mt-8 text-center">
@@ -628,7 +557,7 @@ export default function ExampleRestaurantPage() {
             Want a page like this?
           </h2>
           <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base">
-            Get your own reservation page with full tracking.
+            Get your own listing page with full tracking.
           </p>
           <Link
             href="/claim"

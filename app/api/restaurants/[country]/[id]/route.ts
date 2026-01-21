@@ -33,7 +33,7 @@ export async function GET(
     // Select only needed fields for better performance
     const { data: restaurant, error } = await supabase
       .from('restaurants')
-      .select('id, name, tagline, description, address, phone, website, google_maps_url, rating, review_count, price_level, cuisine, features, hours, booking_url, booking_platform, is_claimed, country_code, restaurant_number, reservation_form_enabled, reservation_email_verified, reservation_whatsapp_verified, reservation_min_advance_hours, reservation_delivery_method')
+      .select('id, name, tagline, description, address, phone, website, google_maps_url, rating, review_count, price_level, cuisine, features, hours, booking_url, booking_platform, whatsapp_number, business_links, logo_url, cover_banner_color, is_claimed, country_code, restaurant_number')
       .eq('country_code', countryCode)
       .eq('restaurant_number', restaurantNumber)
       .single()

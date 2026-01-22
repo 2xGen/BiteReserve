@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import Link from 'next/link'
+import { showToast } from '@/components/Toast'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,6 +32,8 @@ interface PendingClaim {
   user_plan: string
   country_code: string | null
   restaurant_number: string | null
+  business_links: any | null
+  is_claimed: boolean
 }
 
 function AdminClaimsPageContent() {
@@ -91,18 +94,18 @@ function AdminClaimsPageContent() {
     const claim = claims.find(c => c.id === claimId)
     if (claim && (claim.country_code === 'xx' || !claim.country_code || claim.restaurant_number === '00000' || !claim.restaurant_number)) {
       if (!edits || !edits.countryCode || !edits.restaurantNumber) {
-        alert('Please set the Country Code and Restaurant Number before approving. Click "Edit URL" to set these fields.')
+        showToast('Please set the Country Code and Restaurant Number before approving. Click "Edit URL" to set these fields.', 'warning')
         return
       }
       
       // Validate format
       if (edits.countryCode.length !== 2) {
-        alert('Country code must be exactly 2 letters (e.g., "mx", "nl", "es")')
+        showToast('Country code must be exactly 2 letters (e.g., "mx", "nl", "es")', 'error')
         return
       }
       
       if (!/^\d{5}$/.test(edits.restaurantNumber)) {
-        alert('Restaurant number must be exactly 5 digits (e.g., "00002", "04480")')
+        showToast('Restaurant number must be exactly 5 digits (e.g., "00002", "04480")', 'error')
         return
       }
     }
@@ -132,10 +135,10 @@ function AdminClaimsPageContent() {
         delete newEdits[claimId]
         return newEdits
       })
-      alert('Claim approved successfully!')
+      showToast('Claim approved successfully!', 'success')
     } catch (error) {
       console.error('Error approving claim:', error)
-      alert(error instanceof Error ? error.message : 'Failed to approve claim')
+      showToast(error instanceof Error ? error.message : 'Failed to approve claim', 'error')
     } finally {
       setProcessing(null)
     }
@@ -160,10 +163,10 @@ function AdminClaimsPageContent() {
 
       // Refresh claims list
       await fetchClaims()
-      alert('Claim rejected.')
+      showToast('Claim rejected.', 'success')
     } catch (error) {
       console.error('Error rejecting claim:', error)
-      alert(error instanceof Error ? error.message : 'Failed to reject claim')
+      showToast(error instanceof Error ? error.message : 'Failed to reject claim', 'error')
     } finally {
       setProcessing(null)
     }
@@ -349,15 +352,25 @@ function AdminClaimsPageContent() {
                             </p>
                           )}
                         </div>
-                        {editingClaim === claim.id && (
+                        {(editingClaim === claim.id || (claim.country_code && claim.restaurant_number && claim.country_code !== 'xx' && claim.restaurant_number !== '00000')) && (
                           <div className="md:col-span-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-xs font-semibold text-blue-900 mb-1">Restaurant URL Preview:</p>
-                            <p className="text-sm text-blue-800 font-mono">
-                              https://bitereserve.com/r/{claimEdits[claim.id]?.countryCode || 'xx'}/{claimEdits[claim.id]?.restaurantNumber || '00000'}
+                            <p className="text-xs font-semibold text-blue-900 mb-1">Restaurant URL:</p>
+                            <p className="text-sm text-blue-800 font-mono break-all">
+                              https://bitereserve.com/r/{editingClaim === claim.id 
+                                ? `${claimEdits[claim.id]?.countryCode || claim.country_code || 'xx'}/${claimEdits[claim.id]?.restaurantNumber || claim.restaurant_number || '00000'}`
+                                : `${claim.country_code}/${claim.restaurant_number}`
+                              }
                             </p>
-                            <p className="text-xs text-blue-600 mt-1">
-                              Make sure the country code (2 letters) and restaurant number (5 digits) are correct before approving.
-                            </p>
+                            {editingClaim === claim.id && (
+                              <p className="text-xs text-blue-600 mt-1">
+                                Make sure the country code (2 letters) and restaurant number (5 digits) are correct before approving.
+                              </p>
+                            )}
+                            {!editingClaim && claim.is_claimed && (
+                              <p className="text-xs text-blue-600 mt-1">
+                                This is an existing restaurant that was claimed. The URL is already set.
+                              </p>
+                            )}
                           </div>
                         )}
                         {claim.website && (
@@ -403,6 +416,41 @@ function AdminClaimsPageContent() {
                             <p className="text-sm text-gray-600">{claim.features.join(', ')}</p>
                           </div>
                         )}
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700 mb-1">Restaurant Type</p>
+                          <p className="text-sm text-gray-600">
+                            {(() => {
+                              // If restaurant has a valid URL (not placeholder values), it's an existing restaurant
+                              const hasValidUrl = claim.country_code && 
+                                                 claim.restaurant_number && 
+                                                 claim.country_code !== 'xx' && 
+                                                 claim.restaurant_number !== '00000' &&
+                                                 claim.country_code.length === 2 &&
+                                                 claim.restaurant_number.length === 5
+                              
+                              // If is_claimed is true, it means it was an existing restaurant that was claimed (found via search)
+                              // If it has a valid URL (not placeholders), it's definitely an existing restaurant
+                              // Otherwise, it's a new restaurant
+                              const isExisting = claim.is_claimed === true || hasValidUrl
+                              
+                              return isExisting ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1V12h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Existing Restaurant (Claimed)
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  New Restaurant
+                                </span>
+                              )
+                            })()}
+                          </p>
+                        </div>
                         <div>
                           <p className="text-sm font-semibold text-gray-700 mb-1">Claimed By</p>
                           <p className="text-sm text-gray-600">
@@ -477,6 +525,54 @@ function AdminClaimsPageContent() {
                         <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                           <p className="text-sm font-semibold text-gray-700 mb-2">Description</p>
                           <p className="text-sm text-gray-600 whitespace-pre-wrap">{claim.description}</p>
+                        </div>
+                      )}
+
+                      {/* Business Links */}
+                      {claim.business_links && typeof claim.business_links === 'object' && Object.keys(claim.business_links).length > 0 && (
+                        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <p className="text-sm font-semibold text-gray-700 mb-3">Business Card Links</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {Object.entries(claim.business_links).map(([key, link]: [string, any]) => {
+                              if (!link || !link.enabled || !link.url) return null
+                              
+                              const linkLabels: Record<string, string> = {
+                                opentable: 'OpenTable',
+                                resy: 'Resy',
+                                whatsapp: 'WhatsApp',
+                                tripadvisor: 'TripAdvisor',
+                                instagram: 'Instagram',
+                                facebook: 'Facebook',
+                                twitter: 'Twitter',
+                                yelp: 'Yelp',
+                                email: 'Email',
+                                phone: 'Phone',
+                                website: 'Website',
+                                maps: 'Maps',
+                              }
+                              
+                              const label = link.label || linkLabels[key] || key
+                              
+                              return (
+                                <div key={key} className="flex items-start gap-2 p-2 bg-white rounded border border-blue-100">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-semibold text-gray-700 mb-1">{label}</p>
+                                    <a
+                                      href={link.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-accent-600 hover:underline break-all"
+                                    >
+                                      {link.url}
+                                    </a>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                          {Object.values(claim.business_links).filter((link: any) => link?.enabled && link?.url).length === 0 && (
+                            <p className="text-xs text-gray-500 italic">No enabled links</p>
+                          )}
                         </div>
                       )}
                     </div>

@@ -7,6 +7,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { showToast } from '@/components/Toast'
 
 const cuisineOptions = [
   'Italian', 'French', 'Spanish', 'Mediterranean', 'Japanese', 'Chinese', 
@@ -197,6 +198,27 @@ function CompleteAddRestaurantContent() {
     e.preventDefault()
     if (!restaurantId) return
 
+    // Validate required fields
+    const missingFields: string[] = []
+    
+    if (!formData.address?.trim()) {
+      missingFields.push('Address')
+    }
+    if (!formData.phone?.trim()) {
+      missingFields.push('Phone Number')
+    }
+    
+    // Check if at least one business link is enabled
+    const hasEnabledLink = Object.values(formData.businessLinks).some(link => link.enabled)
+    if (!hasEnabledLink) {
+      missingFields.push('At least one Business Card Link')
+    }
+
+    if (missingFields.length > 0) {
+      showToast(`Please fill in the required fields: ${missingFields.join(', ')}`, 'error')
+      return
+    }
+
     setIsSubmitting(true)
     try {
       // Build business_links object with only enabled links
@@ -254,7 +276,7 @@ function CompleteAddRestaurantContent() {
       }, 2000)
     } catch (error) {
       console.error('Error completing restaurant:', error)
-      alert(error instanceof Error ? error.message : 'Failed to save details. Please try again.')
+      showToast(error instanceof Error ? error.message : 'Failed to save details. Please try again.', 'error')
     } finally {
       setIsSubmitting(false)
     }
@@ -368,7 +390,7 @@ function CompleteAddRestaurantContent() {
               {/* Address */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Full Address
+                  Full Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -383,7 +405,7 @@ function CompleteAddRestaurantContent() {
               {/* Phone */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Phone Number
+                  Phone Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
@@ -412,9 +434,11 @@ function CompleteAddRestaurantContent() {
 
               {/* Business Links Section */}
               <div className="border-t border-gray-200 pt-6 mt-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Business Card Links</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-1">
+                  Business Card Links <span className="text-red-500">*</span>
+                </h2>
                 <p className="text-sm text-gray-600 mb-4">
-                  Choose which links to display on your restaurant listing page. All clicks are tracked.
+                  Choose at least one link to display on your restaurant listing page. All clicks are tracked.
                 </p>
                 
                 <div className="space-y-4">
@@ -775,7 +799,7 @@ function CompleteAddRestaurantContent() {
                   )}
                 </button>
                 <p className="text-center text-sm text-gray-500 mt-4">
-                  You can always edit these details later in your dashboard.
+                  <span className="text-red-500">*</span> Required fields. You can always edit these details later in your dashboard.
                 </p>
               </div>
             </form>

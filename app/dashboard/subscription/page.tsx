@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { showToast } from '@/components/Toast'
 import Link from 'next/link'
 
 function SubscriptionContent() {
@@ -55,7 +56,7 @@ function SubscriptionContent() {
       }
     } catch (error) {
       console.error('Error opening customer portal:', error)
-      alert('Failed to open subscription management. Please try again.')
+      showToast('Failed to open subscription management. Please try again.', 'error')
       setRedirecting(false)
     }
   }

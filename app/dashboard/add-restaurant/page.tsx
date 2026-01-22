@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { showToast } from '@/components/Toast'
 
 interface RestaurantSearchResult {
   id: string
@@ -119,7 +120,7 @@ function AddRestaurantContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.id) {
-      alert('Please log in to add a restaurant')
+      showToast('Please log in to add a restaurant', 'warning')
       return
     }
 
@@ -150,7 +151,7 @@ function AddRestaurantContent() {
       router.push(`/dashboard/add-restaurant/complete?restaurant_id=${data.restaurantId}`)
     } catch (error) {
       console.error('Add restaurant error:', error)
-      alert(error instanceof Error ? error.message : 'Failed to add restaurant. Please try again.')
+      showToast(error instanceof Error ? error.message : 'Failed to add restaurant. Please try again.', 'error')
       setIsSubmitting(false)
     }
   }

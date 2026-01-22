@@ -23,6 +23,7 @@ const linkTypeLabels: Record<string, string> = {
   maps: 'View on Map',
 }
 import { useRouter, useSearchParams } from 'next/navigation'
+import { showToast } from '@/components/Toast'
 
 export const dynamic = 'force-dynamic'
 
@@ -234,7 +235,7 @@ function EditPageContent() {
       }))
     } catch (error) {
       console.error('Error fetching restaurant:', error)
-      alert('Failed to load restaurant. Please try again.')
+      showToast('Failed to load restaurant. Please try again.', 'error')
     } finally {
       setLoading(false)
     }
@@ -321,14 +322,14 @@ function EditPageContent() {
     // Validate file type
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml']
     if (!allowedTypes.includes(file.type)) {
-      alert('Invalid file type. Please upload PNG, JPEG, WebP, or SVG.')
+      showToast('Invalid file type. Please upload PNG, JPEG, WebP, or SVG.', 'error')
       return
     }
 
     // Validate file size (max 2MB)
     const MAX_SIZE = 2 * 1024 * 1024 // 2MB
     if (file.size > MAX_SIZE) {
-      alert('File too large. Maximum size is 2MB.')
+      showToast('File too large. Maximum size is 2MB.', 'error')
       return
     }
 
@@ -355,7 +356,7 @@ function EditPageContent() {
       }))
     } catch (error) {
       console.error('Error uploading logo:', error)
-      alert(error instanceof Error ? error.message : 'Failed to upload logo. Please try again.')
+      showToast(error instanceof Error ? error.message : 'Failed to upload logo. Please try again.', 'error')
     } finally {
       setUploadingLogo(false)
     }
@@ -472,11 +473,11 @@ function EditPageContent() {
         throw new Error(error.error || 'Failed to update restaurant details')
       }
 
-      alert('Restaurant information updated successfully!')
+      showToast('Restaurant information updated successfully!', 'success')
       router.push('/dashboard')
     } catch (error) {
       console.error('Error updating restaurant:', error)
-      alert(error instanceof Error ? error.message : 'Failed to save. Please try again.')
+      showToast(error instanceof Error ? error.message : 'Failed to save. Please try again.', 'error')
     } finally {
       setSaving(false)
     }

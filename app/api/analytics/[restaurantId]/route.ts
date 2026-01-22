@@ -76,6 +76,7 @@ export async function GET(
       websiteClicks: 0,
       hoursClicks: 0,
       reservationClicks: 0,
+      ctaActions: 0, // Section 1 Hero Buttons: Call, Map, Web, Book
       uniqueVisitors: 0,
       // New link types
       opentableClicks: 0,
@@ -115,6 +116,10 @@ export async function GET(
         
         // Backward compatibility: maps_clicks also counts as addressClicks
         totals.addressClicks += day.maps_clicks || 0
+        
+        // CTA Actions = Section 1 Hero Buttons (Call, Map, Web, Book)
+        // Count: phone_click + maps_click + website_click + opentable_click + resy_click
+        totals.ctaActions += (day.phone_clicks || 0) + (day.maps_clicks || 0) + (day.website_clicks || 0) + (day.opentable_clicks || 0) + (day.resy_clicks || 0)
 
         chartData.push({
           date: day.date,
@@ -124,11 +129,12 @@ export async function GET(
       })
     }
 
-    // Fetch top sources (from events table, limited query)
+    // Fetch top sources (from events table, only page_view events to match Page Views metric)
     const { data: sourceData } = await supabase
       .from('analytics_events')
       .select('source')
       .eq('restaurant_id', restaurantId)
+      .eq('event_type', 'page_view')
       .gte('created_at', startDate.toISOString())
       .not('source', 'is', null)
       .limit(1000) // Limit for performance

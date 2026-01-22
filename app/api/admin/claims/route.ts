@@ -45,7 +45,9 @@ export async function GET(request: NextRequest) {
         user_id,
         country_code,
         restaurant_number,
-        claim_status
+        claim_status,
+        business_links,
+        is_claimed
       `)
       .not('user_id', 'is', null) // Only restaurants claimed by users
       .order('created_at', { ascending: false })
@@ -174,6 +176,9 @@ export async function GET(request: NextRequest) {
           user_name: userName,
           user_plan: userPlan,
           country_code: restaurant.country_code,
+          restaurant_number: restaurant.restaurant_number,
+          business_links: restaurant.business_links || null,
+          is_claimed: restaurant.is_claimed || false,
         }
       })
     )

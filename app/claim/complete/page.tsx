@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import Link from 'next/link'
+import { showToast } from '@/components/Toast'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -266,7 +267,7 @@ function CompleteClaimContent() {
       console.error('Error completing restaurant:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to save details. Please try again.'
       console.error('Full error details:', error)
-      alert(`${errorMessage}\n\nIf this persists, please check the browser console for more details.`)
+      showToast(errorMessage, 'error')
     } finally {
       setIsSubmitting(false)
     }

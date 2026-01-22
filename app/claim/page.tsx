@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { showToast } from '@/components/Toast'
 
 interface RestaurantSearchResult {
   id: string
@@ -60,7 +61,7 @@ function ClaimPageContent() {
   // Show cancel message if user canceled checkout
   useEffect(() => {
     if (canceled) {
-      alert('Checkout was canceled. Your restaurant claim has been saved, but your subscription was not started. You can try again from your dashboard.')
+      showToast('Checkout was canceled. Your restaurant claim has been saved, but your subscription was not started. You can try again from your dashboard.', 'warning')
     }
   }, [canceled])
 
@@ -315,7 +316,7 @@ function ClaimPageContent() {
       setIsSubmitted(true)
     } catch (error) {
       console.error('Claim submission error:', error)
-      alert(error instanceof Error ? error.message : 'Failed to submit claim. Please try again.')
+      showToast(error instanceof Error ? error.message : 'Failed to submit claim. Please try again.', 'error')
     } finally {
       setIsSubmitting(false)
     }

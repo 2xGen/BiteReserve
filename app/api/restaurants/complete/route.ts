@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
     if (description !== undefined) updateData.description = description
     if (priceLevel !== undefined) updateData.price_level = priceLevel
     if (hours !== undefined) updateData.hours = hours
-    if (googleBusinessProfile !== undefined) updateData.google_business_profile = googleBusinessProfile
+    // Note: google_business_profile column doesn't exist in schema, skipping
+    // if (googleBusinessProfile !== undefined) updateData.google_business_profile = googleBusinessProfile
     if (businessLinks !== undefined) {
       // Update phone, website, maps links if enabled
       if (businessLinks.phone?.enabled && phone) {

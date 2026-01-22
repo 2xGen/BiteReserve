@@ -133,8 +133,9 @@ export async function POST(request: NextRequest) {
           p_restaurant_id: restaurantId,
           p_event_type: eventType
         })
-      } catch {
+      } catch (error) {
         // Ignore errors - this is fire-and-forget
+        console.error('Daily stats update error:', error)
       }
     })()
 

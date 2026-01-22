@@ -94,6 +94,11 @@ export async function GET(request: NextRequest) {
       trialEnd: subscription.trial_ends_at,
       currentPeriodEnd: subscription.current_period_end,
       ...subscription,
+    }, {
+      headers: {
+        // Cache for 2 minutes - subscriptions don't change frequently
+        'Cache-Control': 's-maxage=120, stale-while-revalidate=300'
+      }
     })
   } catch (error) {
     console.error('Subscription status error:', error)

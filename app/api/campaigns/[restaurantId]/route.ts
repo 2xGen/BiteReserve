@@ -34,15 +34,17 @@ export async function GET(
 
     if (error) throw error
 
-    // Fetch click counts for each campaign
+    // Fetch click counts and all action types for each campaign
     const linksWithStats = await Promise.all(
       (links || []).map(async (link) => {
+        // Total clicks (page views)
         const { count: clicks } = await supabase
           .from('analytics_events')
           .select('*', { count: 'exact', head: true })
           .eq('restaurant_id', restaurantId)
           .eq('campaign', link.slug)
 
+        // Reservations/bookings
         const { count: reservations } = await supabase
           .from('analytics_events')
           .select('*', { count: 'exact', head: true })
@@ -50,15 +52,57 @@ export async function GET(
           .eq('campaign', link.slug)
           .eq('event_type', 'reservation_click')
 
+        // All action types
+        const actionTypes = [
+          'phone_click',
+          'website_click',
+          'maps_click',
+          'opentable_click',
+          'resy_click',
+          'whatsapp_click',
+          'tripadvisor_click',
+          'instagram_click',
+          'facebook_click',
+          'twitter_click',
+          'yelp_click',
+          'email_click'
+        ]
+
+        const actions: Record<string, number> = {}
+        
+        // Fetch counts for each action type
+        await Promise.all(
+          actionTypes.map(async (eventType) => {
+            const { count } = await supabase
+              .from('analytics_events')
+              .select('*', { count: 'exact', head: true })
+              .eq('restaurant_id', restaurantId)
+              .eq('campaign', link.slug)
+              .eq('event_type', eventType)
+            
+            actions[eventType] = count || 0
+          })
+        )
+
+        // Calculate total actions (excluding page views)
+        const totalActions = Object.values(actions).reduce((sum, count) => sum + count, 0) + (reservations || 0)
+
         return {
           ...link,
           clicks: clicks || 0,
-          reservations: reservations || 0
+          reservations: reservations || 0,
+          actions: actions,
+          totalActions: totalActions
         }
       })
     )
 
-    return NextResponse.json({ campaigns: linksWithStats })
+    return NextResponse.json({ campaigns: linksWithStats }, {
+      headers: {
+        // Cache for 30 seconds to reduce DB load (campaign links don't change often)
+        'Cache-Control': 's-maxage=30, stale-while-revalidate=60'
+      }
+    })
   } catch (error) {
     console.error('Campaigns GET error:', error)
     return NextResponse.json(

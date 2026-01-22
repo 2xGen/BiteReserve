@@ -112,11 +112,15 @@ export async function POST(request: NextRequest) {
       }
 
       // Update restaurant with user info
+      // Note: This is an existing restaurant being claimed (found via search)
+      // Preserve existing country_code and restaurant_number if they exist
       const updateData: any = {
         user_id: userId,
-        is_claimed: false, // Will be set to true when approved
+        is_claimed: true, // Mark as existing restaurant that was claimed (found via search)
         claim_status: 'pending' // Awaiting manual review
       }
+      
+      // Don't overwrite existing country_code and restaurant_number - they should already be set for existing restaurants
 
       if (restaurantName) updateData.name = restaurantName
 

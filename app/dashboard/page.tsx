@@ -1016,7 +1016,7 @@ function DashboardContent() {
                       <div className="sm:hidden divide-y divide-gray-100">
                         {campaignLinks.map((link) => {
                           const typeInfo = campaignTypes.find(t => t.value === link.type)
-                          const convRate = link.clicks > 0 ? ((link.reservations / link.clicks) * 100).toFixed(1) : '0.0'
+                          const actionConvRate = link.clicks > 0 ? ((link.totalActions / link.clicks) * 100).toFixed(1) : '0.0'
                           const fullUrl = currentRestaurant?.country_code && currentRestaurant?.restaurant_number
                             ? `https://bitereserve.com/r/${currentRestaurant.country_code}/${currentRestaurant.restaurant_number}?ref=${link.slug}`
                             : `https://bitereserve.com/r/...?ref=${link.slug}`
@@ -1055,10 +1055,6 @@ function DashboardContent() {
                                 <div>
                                   <span className="text-gray-500">Clicks</span>
                                   <p className="font-bold text-gray-900">{link.clicks || 0}</p>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Bookings</span>
-                                  <p className="font-bold text-accent-600">{link.reservations || 0}</p>
                                 </div>
                                 <div>
                                   <span className="text-gray-500">Total Actions</span>
@@ -1123,7 +1119,7 @@ function DashboardContent() {
                                       )
                                     })}
                                   </div>
-                                  {(!link.actions || Object.values(link.actions).every((c: any) => c === 0)) && link.reservations === 0 && (
+                                  {(!link.actions || Object.values(link.actions).every((c: any) => c === 0)) && (
                                     <p className="text-xs text-gray-400 mt-2">No actions tracked yet</p>
                                   )}
                                 </div>
@@ -1141,16 +1137,15 @@ function DashboardContent() {
                               <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-4">Campaign</th>
                               <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-4">Link</th>
                               <th className="text-center text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-4">Clicks</th>
-                              <th className="text-center text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-4">Bookings</th>
                               <th className="text-center text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-4">Total Actions</th>
-                              <th className="text-center text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-4">Rate</th>
+                              <th className="text-center text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-4">Action Conversion</th>
                               <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-4">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
                             {campaignLinks.map((link) => {
                               const typeInfo = campaignTypes.find(t => t.value === link.type)
-                              const convRate = link.clicks > 0 ? ((link.reservations / link.clicks) * 100).toFixed(1) : '0.0'
+                              const actionConvRate = link.clicks > 0 ? ((link.totalActions / link.clicks) * 100).toFixed(1) : '0.0'
                               const fullUrl = currentRestaurant?.country_code && currentRestaurant?.restaurant_number
                                 ? `r/${currentRestaurant.country_code}/${currentRestaurant.restaurant_number}?ref=${link.slug}`
                                 : `bitereserve.com/...?ref=${link.slug}`
@@ -1198,7 +1193,6 @@ function DashboardContent() {
                                       </div>
                                     </td>
                                     <td className="px-6 py-4 text-center font-bold text-gray-900">{link.clicks?.toLocaleString('en-US') || 0}</td>
-                                    <td className="px-6 py-4 text-center font-bold text-accent-600">{link.reservations || 0}</td>
                                     <td className="px-6 py-4 text-center">
                                       <button
                                         onClick={() => setExpandedCampaign(expandedCampaign === link.id ? null : link.id)}
@@ -1212,9 +1206,9 @@ function DashboardContent() {
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                       <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${
-                                        parseFloat(convRate) >= 5 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                                        parseFloat(actionConvRate) >= 5 ? 'bg-green-100 text-green-700' : parseFloat(actionConvRate) > 0 ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
                                       }`}>
-                                        {convRate}%
+                                        {actionConvRate}%
                                       </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
@@ -1230,7 +1224,7 @@ function DashboardContent() {
                                   </tr>
                                   {expandedCampaign === link.id && link.actions && (
                                     <tr>
-                                      <td colSpan={7} className="px-6 py-4 bg-gray-50">
+                                      <td colSpan={6} className="px-6 py-4 bg-gray-50">
                                         <div className="space-y-3">
                                           <h4 className="text-sm font-semibold text-gray-700 mb-2">Action Breakdown</h4>
                                           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -1266,7 +1260,7 @@ function DashboardContent() {
                                               )
                                             })}
                                           </div>
-                                          {(!link.actions || Object.values(link.actions).every((c: any) => c === 0)) && link.reservations === 0 && (
+                                          {(!link.actions || Object.values(link.actions).every((c: any) => c === 0)) && (
                                             <p className="text-sm text-gray-400">No actions tracked yet</p>
                                           )}
                                         </div>

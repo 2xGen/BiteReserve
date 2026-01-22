@@ -273,7 +273,10 @@ function DashboardContent() {
     if (!selectedRestaurant) return
 
     try {
-      const response = await fetch(`/api/analytics/${selectedRestaurant}?period=${selectedPeriod}`)
+      // Add cache-busting timestamp to ensure fresh data
+      const response = await fetch(`/api/analytics/${selectedRestaurant}?period=${selectedPeriod}&t=${Date.now()}`, {
+        cache: 'no-store'
+      })
       if (!response.ok) throw new Error('Failed to fetch analytics')
       const data = await response.json()
       setAnalyticsData(data)
@@ -286,7 +289,10 @@ function DashboardContent() {
     if (!selectedRestaurant) return
 
     try {
-      const response = await fetch(`/api/campaigns/${selectedRestaurant}`)
+      // Add cache-busting timestamp to ensure fresh data
+      const response = await fetch(`/api/campaigns/${selectedRestaurant}?t=${Date.now()}`, {
+        cache: 'no-store'
+      })
       if (!response.ok) throw new Error('Failed to fetch campaigns')
       const data = await response.json()
       setCampaignLinks(data.campaigns || [])
@@ -332,11 +338,14 @@ function DashboardContent() {
       setShowModal(false)
       showToast('Campaign link created successfully!', 'success')
       
-      // Refresh the list (don't let this error prevent success message)
+      // Refresh both campaign links and analytics (don't let errors prevent success message)
       try {
-        await fetchCampaignLinks()
+        await Promise.all([
+          fetchCampaignLinks(),
+          fetchAnalytics() // Also refresh analytics to show new campaign
+        ])
       } catch (fetchError) {
-        console.error('Error refreshing campaign links:', fetchError)
+        console.error('Error refreshing data:', fetchError)
         // Don't show error to user - link was created successfully
       }
     } catch (error) {
@@ -355,7 +364,11 @@ function DashboardContent() {
       })
 
       if (!response.ok) throw new Error('Failed to delete campaign')
-      await fetchCampaignLinks()
+      // Refresh both campaign links and analytics
+      await Promise.all([
+        fetchCampaignLinks(),
+        fetchAnalytics()
+      ])
       showToast('Campaign link deleted successfully', 'success')
     } catch (error) {
       console.error('Error deleting campaign:', error)

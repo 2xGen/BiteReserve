@@ -4,9 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 // Use Edge Runtime for speed
 export const runtime = 'edge'
 
-// Cache responses for 60 seconds to reduce DB load
-const CACHE_TTL = 60
-
+// No caching - dashboard needs real-time data
 export async function GET(
   request: NextRequest,
   { params }: { params: { restaurantId: string } }
@@ -195,7 +193,9 @@ export async function GET(
       })) || []
     }, {
       headers: {
-        'Cache-Control': `s-maxage=${CACHE_TTL}, stale-while-revalidate`
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       }
     })
   } catch (error) {

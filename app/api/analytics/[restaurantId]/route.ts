@@ -54,13 +54,28 @@ export async function GET(
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     }
 
+    // Check if today is within the date range
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const todayDateStr = today.toISOString().split('T')[0]
+    const startDateStr = startDate.toISOString().split('T')[0]
+    const includeToday = todayDateStr >= startDateStr
+
     // Fetch aggregated stats from daily_stats table (fast)
-    const { data: dailyStats, error: statsError } = await supabase
+    // If today is included, exclude it from daily_stats and count directly from events for real-time accuracy
+    const dailyStatsQuery = supabase
       .from('analytics_daily_stats')
       .select('*')
       .eq('restaurant_id', restaurantId)
-      .gte('date', startDate.toISOString().split('T')[0])
+      .gte('date', startDateStr)
       .order('date', { ascending: true })
+    
+    if (includeToday) {
+      // Exclude today from daily_stats - we'll count it directly from events
+      dailyStatsQuery.lt('date', todayDateStr)
+    }
+
+    const { data: dailyStats, error: statsError } = await dailyStatsQuery
 
     if (statsError) {
       console.error('Stats error:', statsError)
@@ -125,6 +140,80 @@ export async function GET(
           reservations: day.reservation_clicks || 0
         })
       })
+    }
+
+    // Count today's events directly from events table for real-time accuracy
+    // This ensures events that just happened appear immediately in totals
+    if (includeToday) {
+      const todayStart = today.toISOString()
+      
+      const { data: todayEvents } = await supabase
+        .from('analytics_events')
+        .select('event_type')
+        .eq('restaurant_id', restaurantId)
+        .gte('created_at', todayStart)
+        .gte('created_at', startDate.toISOString()) // Only count events within the selected period
+
+      if (todayEvents) {
+        todayEvents.forEach(event => {
+          switch (event.event_type) {
+            case 'page_view':
+              totals.pageViews += 1
+              break
+            case 'phone_click':
+              totals.phoneClicks += 1
+              totals.ctaActions += 1
+              break
+            case 'maps_click':
+              totals.mapsClicks += 1
+              totals.addressClicks += 1
+              totals.ctaActions += 1
+              break
+            case 'website_click':
+              totals.websiteClicks += 1
+              totals.ctaActions += 1
+              break
+            case 'opentable_click':
+              totals.opentableClicks += 1
+              totals.reservationClicks += 1
+              totals.ctaActions += 1
+              break
+            case 'resy_click':
+              totals.resyClicks += 1
+              totals.reservationClicks += 1
+              totals.ctaActions += 1
+              break
+            case 'whatsapp_click':
+              totals.whatsappClicks += 1
+              break
+            case 'tripadvisor_click':
+              totals.tripadvisorClicks += 1
+              break
+            case 'instagram_click':
+              totals.instagramClicks += 1
+              break
+            case 'facebook_click':
+              totals.facebookClicks += 1
+              break
+            case 'twitter_click':
+              totals.twitterClicks += 1
+              break
+            case 'yelp_click':
+              totals.yelpClicks += 1
+              break
+            case 'email_click':
+              totals.emailClicks += 1
+              break
+            case 'hours_click':
+            case 'hours_view':
+              totals.hoursClicks += 1
+              break
+            case 'reservation_click':
+              totals.reservationClicks += 1
+              break
+          }
+        })
+      }
     }
 
     // Fetch top sources (from events table, only page_view events to match Page Views metric)

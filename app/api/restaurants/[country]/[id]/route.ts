@@ -63,8 +63,8 @@ export async function GET(
     console.log(`[API] Restaurant found: ${restaurant.name}`)
     return NextResponse.json({ restaurant }, {
       headers: {
-        // Cache for 5 minutes, revalidate in background
-        'Cache-Control': 's-maxage=300, stale-while-revalidate=600'
+        // Cache for 30 seconds to allow quick updates while still reducing load
+        'Cache-Control': 's-maxage=30, stale-while-revalidate=60'
       }
     })
   } catch (error) {

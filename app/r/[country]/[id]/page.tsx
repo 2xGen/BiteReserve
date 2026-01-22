@@ -107,6 +107,16 @@ export default function RestaurantPage() {
           restaurant.business_links = null
         }
         
+        // Parse hours if it comes as a JSON string
+        if (restaurant.hours && typeof restaurant.hours === 'string') {
+          try {
+            restaurant.hours = JSON.parse(restaurant.hours)
+          } catch (e) {
+            console.error('Error parsing hours:', e)
+            restaurant.hours = null
+          }
+        }
+        
         setRestaurant(restaurant)
         
         // Track page view (silent)
@@ -265,6 +275,16 @@ export default function RestaurantPage() {
   const normalizeHours = (hoursData: any): Record<string, string> => {
     if (!hoursData) return {}
     
+    // If it's a JSON string, parse it first
+    if (typeof hoursData === 'string') {
+      try {
+        hoursData = JSON.parse(hoursData)
+      } catch (e) {
+        console.error('Error parsing hours string:', e)
+        return {}
+      }
+    }
+    
     // If it's already a Record<string, string>, return as is
     if (typeof hoursData === 'object' && !Array.isArray(hoursData)) {
       // Check if it's a plain object with string values
@@ -291,17 +311,29 @@ export default function RestaurantPage() {
       
       hoursData.forEach((item: any) => {
         if (item && typeof item === 'object') {
-          const timeStr = item.time || item.label || ''
-          if (item.days && Array.isArray(item.days)) {
-            item.days.forEach((day: string) => {
-              const dayKey = dayMap[day.toLowerCase()] || day.toLowerCase()
-              if (normalized[dayKey]) {
-                normalized[dayKey] += ', ' + timeStr
-              } else {
-                normalized[dayKey] = timeStr
-              }
-            })
+          const timeStr = item.time || ''
+          // Handle different formats:
+          // 1. days is an array: ["Monday", "Tuesday"]
+          // 2. days is a string: "Monday"
+          // 3. day is a string: "Monday"
+          if (item.days) {
+            if (Array.isArray(item.days)) {
+              // Multiple days with same hours
+              item.days.forEach((day: string) => {
+                const dayKey = dayMap[day.toLowerCase()] || day.toLowerCase()
+                if (normalized[dayKey]) {
+                  normalized[dayKey] += ', ' + timeStr
+                } else {
+                  normalized[dayKey] = timeStr
+                }
+              })
+            } else if (typeof item.days === 'string') {
+              // Single day as string (database format: days: "Monday")
+              const dayKey = dayMap[item.days.toLowerCase()] || item.days.toLowerCase()
+              normalized[dayKey] = timeStr
+            }
           } else if (item.day) {
+            // Alternative format with 'day' field
             const dayKey = dayMap[item.day.toLowerCase()] || item.day.toLowerCase()
             normalized[dayKey] = timeStr
           }
@@ -480,13 +512,19 @@ export default function RestaurantPage() {
             </div>
           )}
 
-          {/* Revealed Address */}
-          {showAddress && restaurant.address && (
-            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-purple-50 border-2 border-purple-200 rounded-lg sm:rounded-xl animate-fade-in-scale">
+          {/* Address - Always visible if available */}
+          {restaurant.address && (
+            <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-                <div>
-                  <p className="text-xs sm:text-sm text-purple-700 font-medium">Address</p>
-                  <p className="text-sm sm:text-lg font-bold text-purple-800">{restaurant.address}</p>
+                <div className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-xs sm:text-sm text-gray-600 font-medium mb-1">Address</p>
+                    <p className="text-sm sm:text-base font-semibold text-gray-900">{restaurant.address}</p>
+                  </div>
                 </div>
                 {restaurant.google_maps_url && (
                   <a
@@ -494,6 +532,7 @@ export default function RestaurantPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full sm:w-auto text-center px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+                    onClick={() => trackEvent(restaurant.id, 'maps_click')}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

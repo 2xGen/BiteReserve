@@ -469,15 +469,27 @@ function EditPageContent() {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to update restaurant details')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('API error response:', errorData)
+        throw new Error(errorData.error || errorData.details || 'Failed to update restaurant details')
       }
 
+      const result = await response.json()
+      console.log('Update successful:', result)
+
       showToast('Restaurant information updated successfully!', 'success')
-      router.push('/dashboard')
+      
+      // Refresh the restaurant data to show updated changes
+      await fetchRestaurant()
+      
+      // Optionally redirect after a short delay to show the success message
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 1000)
     } catch (error) {
       console.error('Error updating restaurant:', error)
-      showToast(error instanceof Error ? error.message : 'Failed to save. Please try again.', 'error')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save. Please try again.'
+      showToast(errorMessage, 'error')
     } finally {
       setSaving(false)
     }

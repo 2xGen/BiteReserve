@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
-export const runtime = 'edge'
+// Use Node runtime for file uploads (Edge has limitations with FormData)
+export const runtime = 'nodejs'
 
 // POST - Upload restaurant logo to Supabase Storage
 export async function POST(request: NextRequest) {
@@ -49,7 +51,7 @@ export async function POST(request: NextRequest) {
     // Verify restaurant exists and user has permission
     const { data: restaurant, error: restaurantError } = await supabase
       .from('restaurants')
-      .select('id, user_id')
+      .select('id, user_id, country_code, restaurant_number')
       .eq('id', restaurantId)
       .single()
 
@@ -69,7 +71,32 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const uint8Array = new Uint8Array(arrayBuffer)
 
-    // Upload to Supabase Storage (create bucket if needed - restaurant-assets)
+    // Check if bucket exists, create if it doesn't
+    const { data: buckets } = await supabase.storage.listBuckets()
+    const bucketExists = buckets?.some(bucket => bucket.name === 'restaurant-assets')
+    
+    if (!bucketExists) {
+      // Try to create the bucket
+      const { data: newBucket, error: createError } = await supabase.storage.createBucket('restaurant-assets', {
+        public: true, // Make bucket public so logos can be accessed
+        fileSizeLimit: 5242880, // 5MB max file size
+        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml']
+      })
+
+      if (createError) {
+        console.error('Error creating bucket:', createError)
+        return NextResponse.json(
+          { 
+            error: 'Storage bucket not configured. Please create the "restaurant-assets" bucket in Supabase Storage.',
+            details: 'Go to Supabase Dashboard > Storage > Create Bucket. Name: "restaurant-assets", Public: Yes',
+            createError: createError.message
+          },
+          { status: 500 }
+        )
+      }
+    }
+
+    // Upload to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('restaurant-assets')
       .upload(filePath, uint8Array, {
@@ -79,6 +106,17 @@ export async function POST(request: NextRequest) {
 
     if (uploadError) {
       console.error('Storage upload error:', uploadError)
+      // Check if bucket doesn't exist
+      if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('not found')) {
+        return NextResponse.json(
+          { 
+            error: 'Storage bucket not configured. Please create the "restaurant-assets" bucket in Supabase Storage.',
+            details: 'Go to Supabase Dashboard > Storage > Create Bucket. Name: "restaurant-assets", Public: Yes',
+            uploadError: uploadError.message
+          },
+          { status: 500 }
+        )
+      }
       return NextResponse.json(
         { error: 'Failed to upload logo', details: uploadError.message },
         { status: 500 }
@@ -106,6 +144,14 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to save logo URL' },
         { status: 500 }
       )
+    }
+
+    // Revalidate the restaurant page cache so logo appears immediately
+    if (restaurant.country_code && restaurant.restaurant_number) {
+      const restaurantPath = `/r/${restaurant.country_code}/${restaurant.restaurant_number}`
+      revalidatePath(restaurantPath)
+      // Also revalidate the API route
+      revalidatePath(`/api/restaurants/${restaurant.country_code}/${restaurant.restaurant_number}`)
     }
 
     return NextResponse.json({

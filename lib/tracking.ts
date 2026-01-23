@@ -129,6 +129,15 @@ function getSource(): string | undefined {
 
   const params = new URLSearchParams(window.location.search)
   
+  // Check ref parameter - only use as source if it's "toptours" or "arubabuddies" (for partner tracking)
+  const ref = params.get('ref')
+  if (ref) {
+    const refLower = ref.toLowerCase()
+    if (refLower === 'toptours' || refLower === 'arubabuddies') {
+      return refLower
+    }
+  }
+
   // Check UTM source
   const utmSource = params.get('utm_source')
   if (utmSource) return utmSource
@@ -148,6 +157,8 @@ function getSource(): string | undefined {
     if (hostname.includes('twitter') || hostname.includes('x.com')) return 'twitter'
     if (hostname.includes('tripadvisor')) return 'tripadvisor'
     if (hostname.includes('yelp')) return 'yelp'
+    if (hostname.includes('toptours')) return 'toptours'
+    if (hostname.includes('arubabuddies')) return 'arubabuddies'
 
     return hostname
   } catch {
@@ -157,12 +168,14 @@ function getSource(): string | undefined {
 
 /**
  * Get campaign from URL parameter
+ * Note: ref is now used as source, so we only check for campaign-specific params
  */
 function getCampaign(): string | undefined {
   if (typeof window === 'undefined') return undefined
 
   const params = new URLSearchParams(window.location.search)
-  return params.get('c') || params.get('ref') || params.get('campaign') || undefined
+  // ref is now used as source, so only check for campaign-specific params
+  return params.get('c') || params.get('campaign') || params.get('utm_campaign') || undefined
 }
 
 /**

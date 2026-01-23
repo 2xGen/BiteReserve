@@ -27,38 +27,45 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const period = searchParams.get('period') || '7d'
 
-    // Calculate date range
+    // Calculate date range using UTC to match database timezone
+    // Database uses CURRENT_DATE which is UTC, so we need to use UTC dates here too
     const now = new Date()
-    let startDate: Date
-
+    
+    // Get today's date in UTC (matching database CURRENT_DATE)
+    const todayUTC = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate()
+    ))
+    const todayDateStr = todayUTC.toISOString().split('T')[0]
+    
+    // Calculate start date by subtracting days from today (in UTC)
+    let daysToSubtract = 7
     switch (period) {
       case '24h':
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+        daysToSubtract = 1
         break
       case '7d':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        daysToSubtract = 7
         break
       case '14d':
-        startDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+        daysToSubtract = 14
         break
       case '28d':
-        startDate = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000)
+        daysToSubtract = 28
         break
       case '3m':
-        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+        daysToSubtract = 90
         break
       case '6m':
-        startDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000)
+        daysToSubtract = 180
         break
-      default:
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     }
-
-    // Check if today is within the date range
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const todayDateStr = today.toISOString().split('T')[0]
-    const startDateStr = startDate.toISOString().split('T')[0]
+    
+    // Calculate start date in UTC
+    const startDateUTC = new Date(todayUTC)
+    startDateUTC.setUTCDate(startDateUTC.getUTCDate() - daysToSubtract)
+    const startDateStr = startDateUTC.toISOString().split('T')[0]
     const includeToday = todayDateStr >= startDateStr
 
     // Fetch aggregated stats from daily_stats table (fast)
@@ -145,14 +152,17 @@ export async function GET(
     // Count today's events directly from events table for real-time accuracy
     // This ensures events that just happened appear immediately in totals
     if (includeToday) {
-      const todayStart = today.toISOString()
+      // Use UTC midnight for today to match database date calculations
+      const todayStart = todayUTC.toISOString()
+      // Use the start date (also UTC) to ensure we only count events within the period
+      const periodStart = startDateUTC.toISOString()
       
       const { data: todayEvents } = await supabase
         .from('analytics_events')
         .select('event_type')
         .eq('restaurant_id', restaurantId)
         .gte('created_at', todayStart)
-        .gte('created_at', startDate.toISOString()) // Only count events within the selected period
+        .gte('created_at', periodStart) // Only count events within the selected period
 
       if (todayEvents) {
         todayEvents.forEach(event => {
@@ -222,7 +232,7 @@ export async function GET(
       .select('source')
       .eq('restaurant_id', restaurantId)
       .eq('event_type', 'page_view')
-      .gte('created_at', startDate.toISOString())
+      .gte('created_at', startDateUTC.toISOString())
       .not('source', 'is', null)
       .limit(1000) // Limit for performance
 
@@ -230,6 +240,10 @@ export async function GET(
     const sourceCounts: Record<string, number> = {}
     sourceData?.forEach(event => {
       const source = event.source || 'direct'
+      // Filter out localhost from production analytics (not meaningful for restaurant owners)
+      if (source.toLowerCase() === 'localhost') {
+        return // Skip localhost - treat as internal/testing traffic
+      }
       sourceCounts[source] = (sourceCounts[source] || 0) + 1
     })
 
@@ -243,7 +257,7 @@ export async function GET(
       .from('analytics_events')
       .select('campaign')
       .eq('restaurant_id', restaurantId)
-      .gte('created_at', startDate.toISOString())
+      .gte('created_at', startDateUTC.toISOString())
       .not('campaign', 'is', null)
       .limit(1000)
 

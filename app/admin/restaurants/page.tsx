@@ -132,12 +132,20 @@ function AdminRestaurantsPageContent() {
                 <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">All Restaurants</h1>
                 <p className="text-gray-600">View and manage all restaurants in the system</p>
               </div>
-              <Link
-                href="/admin/claims"
-                className="px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-lg transition-colors"
-              >
-                View Claims
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/admin/emails"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Manage Emails
+                </Link>
+                <Link
+                  href="/admin/claims"
+                  className="px-4 py-2 bg-accent-600 hover:bg-accent-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  View Claims
+                </Link>
+              </div>
             </div>
 
             {/* Filters */}

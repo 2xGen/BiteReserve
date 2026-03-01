@@ -3,6 +3,10 @@ import './globals.css'
 import { Providers } from '@/components/providers'
 import { Analytics } from '@vercel/analytics/next'
 import { ToastContainer } from '@/components/Toast'
+import HoldPage from '@/components/HoldPage'
+
+// Default to hold page (Supabase disabled). Set NEXT_PUBLIC_HOLD_MODE=false in Vercel when resuming.
+const HOLD_MODE = process.env.NEXT_PUBLIC_HOLD_MODE !== 'false'
 
 export const metadata: Metadata = {
   title: 'BiteReserve - Reserve Your Table In Seconds',
@@ -33,6 +37,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  if (HOLD_MODE) {
+    return (
+      <html lang="en">
+        <body>
+          <HoldPage />
+        </body>
+      </html>
+    )
+  }
   return (
     <html lang="en">
       <body>

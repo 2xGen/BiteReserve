@@ -3,6 +3,15 @@ const path = require('path')
 
 const nextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: '/r/:country/:id',
+        destination: '/',
+        permanent: true, // 301
+      },
+    ]
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
